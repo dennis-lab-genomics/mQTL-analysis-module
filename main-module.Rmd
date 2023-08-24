@@ -1,0 +1,173 @@
+---
+title: "mQTL Preparation"
+output: html_notebook
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(minfi)
+library(IlluminaHumanMethylation450kanno.ilmn12.hg19)
+knitr::opts_chunk$set(echo = TRUE)
+methy_annot <- as.data.table(getAnnotation(IlluminaHumanMethylation450kanno.ilmn12.hg19))
+```
+# richs
+
+```{r}
+richs_ancestry <- fread("../RICHS_genotyping/phg001102.v1.RICHS.genotype-calls-matrixfmt.MEGA_Consortium.c1.GRU/raw_data.geno.maf.mind.sex_check.het_filter.ibd_filter.eigenvec")
+subject_pheno <- fread("/scratch/st-dennisjk-1/wcasazza/RICHS_genotyping/RICHS_Subject_phenotypes.GRU.txt")
+sample_multi <- fread("/scratch/st-dennisjk-1/wcasazza/RICHS_genotyping/RICHS_Sample.MULTI.txt")
+fam <- read.delim("/scratch/st-dennisjk-1/wcasazza/RICHS_genotyping/phg001102.v1.RICHS.genotype-calls-matrixfmt.MEGA_Consortium.c1.GRU/plink_for_dbgap.fam",header=FALSE,sep="")
+mapping <- fread("RICHS_dbgap_GEO_subject_sample_mapping.csv")
+combined_meta <- subject_pheno %>% 
+    left_join(
+        sample_multi
+    )%>% filter(SAMPLE_USE == "Array_SNP") 
+richs_meta <- combined_meta
+richs_meta$IID <- richs_meta$SAMPLE_ID
+richs_meta_methy <- fread("../RICHS_DNAm/metadata.csv") %>% inner_join(mapping,by=c("sample"= "GSM_SampleID"))
+richs_meta <- richs_meta %>% right_join(richs_ancestry,by=c("IID"="V2")) %>% right_join(richs_meta_methy,by="SAMPLE_ID") %>% filter(SAMPLE_ID %in% richs_ancestry$V2)
+betas_sub <- fread("processed_DNAm_RICHS_functional_norm.txt")
+genotype <- fread("../RICHS_genotyping/phg001102.v1.RICHS.genotype-calls-matrixfmt.MEGA_Consortium.c1.GRU/raw_data.imputed.r2_30.maf_mismatch.traw")
+```
+
+## Match Samples
+```{r}
+colnames(genotype) <- gsub(".*_","",colnames(genotype))
+richs_meta <- richs_meta[IID %in% colnames(genotype) & sample %in% colnames(betas_sub)]
+gen_vars <- c(colnames(genotype)[1:6],richs_meta$IID)
+to_delete <- colnames(genotype)[!colnames(genotype)%in% gen_vars]
+genotype[,c(to_delete):=NULL]
+setcolorder(genotype,gen_vars)
+methy_vars <- c("cpg",richs_meta$sample)
+betas_sub <- betas_sub[,methy_vars,with=FALSE]
+
+```
+```{r}
+all(colnames(betas_sub)[-c(1)] == richs_meta$sample)
+all(colnames(genotype)[-c(1:6)] == richs_meta$IID)
+```
+## Compute PCs
+```{r}
+covars <- richs_meta %>% as.data.frame() %>%
+                dplyr::select(
+                    age,
+                    V3,
+                    V4,
+                    V5,
+                    V6,
+                    V7,
+                    sex
+                ) %>% 
+                mutate(Sex= as.numeric(sex =="M"))%>%
+                dplyr::select(-sex) %>% 
+                as.data.frame() 
+residual <- residuals(lm(as.matrix(t(betas_sub[!cpg %in% methy_annot[chr %in% c("chrX","chrY")]$Name ,-c(1)]))~., data=covars))
+methy_PC <- prcomp(residual, center=T,rank.= 20)
+```
+
+
+
+## Write data
+
+
+```{r}
+#SNP POS
+fwrite(genotype[,.(SNP,CHR=paste0("chr",CHR),POS)],"matrix_eqtl_data/snp_pos.txt",sep="\t", quote=F)
+#SNP POS
+fwrite(genotype[CHR==21,.(SNP,CHR=paste0("chr",CHR),POS)],"matrix_eqtl_data/snp_pos_chr21.txt",sep = "\t", quote=F)
+#SNPs
+geno_vars <- colnames(genotype)[c(1,3:6)]
+genotype[,c(geno_vars):=NULL]
+fwrite(genotype,"matrix_eqtl_data/all_imputed_matrixeQTL.txt",sep = "\t",quote = F)
+#Methy POS
+fwrite(methy_annot[Name %in% betas_sub$cpg,.(geneid=Name,chr,s1=pos,s2=pos)], "matrix_eqtl_data/probe_pos.txt",sep = "\t",quote=F)
+#methy
+fwrite(betas_sub,"matrix_eqtl_data/methylation_matrixeQTL.txt",sep="\t",quote=F)
+
+
+#SNPs
+snp_pos <- fread("matrix_eqtl_data/snp_pos.txt")
+fwrite(genotype[SNP %in% snp_pos[CHR=="chr21"]$SNP],"matrix_eqtl_data/all_imputed_matrixeQTL_chr21.txt", sep = "\t", quote = F)
+#Methy POS
+fwrite(methy_annot[Name %in% betas_sub$cpg & chr=="chr21",.(geneid=Name, chr,s1=pos,s2=pos)], "matrix_eqtl_data/probe_pos_chr1.txt", sep = "\t", quote=F)
+chr1_cpg <- methy_annot[Name %in% betas_sub$cpg & chr == "chr21",]$Name
+#methy
+fwrite(betas_sub[cpg %in% chr1_cpg],"matrix_eqtl_data/methylation_matrixeQTL_chr21.txt",sep="\t", quote=F)
+```
+
+
+```{r}
+fmt <- "matrix_eqtl_data/mQTL_covar_%d_methy_PC.txt"
+for(i in 0:20){
+    if (i==1){
+        tmp <- t(cbind(PC1=methy_PC$x[,1:i],richs_meta %>% as.data.frame() %>%
+                dplyr::select(
+                    age,
+                    V3,
+                    V4,
+                    V5,
+                    V6,
+                    V7,
+                    sex
+                )) %>% 
+                mutate(Sex= as.numeric(sex =="M"))%>%
+                dplyr::select(-sex)) %>% 
+                as.data.frame() 
+
+    }else if (i==0){
+          tmp <- t(cbind(richs_meta %>% as.data.frame() %>%
+               dplyr::select(
+                    age,
+                    V3,
+                    V4,
+                    V5,
+                    V6,
+                    V7,
+                    sex
+                )) %>% 
+                mutate(Sex= as.numeric(sex =="M"))%>%
+                dplyr::select(-sex)) %>% 
+                as.data.frame() 
+    }else{
+        tmp <- t(cbind(methy_PC$x[,1:i],
+                richs_meta %>% as.data.frame() %>%
+                dplyr::select(
+                    age,
+                    V3,
+                    V4,
+                    V5,
+                    V6,
+                    V7,
+                    sex
+                )) %>% 
+                mutate(Sex= as.numeric(sex =="M"))%>%
+                dplyr::select(-sex)) %>% 
+                
+                as.data.frame() 
+
+    }
+  colnames(tmp) <- richs_meta$IID
+    write_delim(
+      tmp %>% rownames_to_column(var="id"),
+      path=sprintf(fmt,i))
+}
+```
+## PC checking
+
+```{r}
+fmt <- "matrix_eqtl_data/cis_all_impute_mQTL_results_%d_methy_PC_chr21.txt"
+chr21_res <- lapply(
+  0:20,
+  function(i){
+    tmp <- fread(sprintf(fmt,i))
+    nrow(tmp[`p-value` < (0.05/ .N)])
+  }
+)
+```
+```{r}
+to_plot <- data.frame(PC=0:20,hits=unlist(chr21_res))
+ggplot(to_plot,aes(PC,hits)) + geom_point() + geom_smooth() + labs(x="PCs Included",y="mQTL Detected")+ theme_minimal()
+```
+

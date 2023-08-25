@@ -1,29 +1,45 @@
 ---
-title: "mQTL Preparation"
-output: html_notebook
+title: "mQTL Training Module"
+author: "William Casazza"
+bibliography: references.bib
+format:
+  html:
+    toc: true
+editor:
+  render-on-save: true
+
 ---
 
+# Objectives
+1. Basics of molecular quantitative trait locus (molQTL) analysis
+1. Running cis-methylation QTL analysis with the `matrixEQTL` package
+1. Post-hoc analyses involving molQTL and GWAS summary statistics
 
-```{r setup, include=FALSE}
-library(tidyverse)
-library(data.table)
-library(minfi)
-library(IlluminaHumanMethylation450kanno.ilmn12.hg19)
-knitr::opts_chunk$set(echo = TRUE)
-methy_annot <- as.data.table(getAnnotation(IlluminaHumanMethylation450kanno.ilmn12.hg19))
-```
-# richs
-
+## Required packages
 ```{r}
+library(tidyverse) # install.packages("tidyverse")
+library(data.table) # install.packages("data.table")
+# Bioconductor packages
+require(BiocManager)
+library(minfi) # BiocManager::install("minfi")
+library(IlluminaHumanMethylation450kanno.ilmn12.hg19) # BiocManager::install("IlluminaHumanMethylation450kanno.ilmn12.hg19")
+```
+
+# Quantitative trait loci (QTL) basics
+Quantitative trait loci are "mapped" by computing the association between SNP genotype and a quantitative trait like DNA methylation (DNAm), gene expression, or some other epigenetic mark. Analysis pipelines for computing these "molecular" QTL, or molQTL, can be complex, and fully understanding each of the steps in these pipelines in detail can be daunting. In this tutorial, I break down molQTL analysis into general steps, using a DNAm QTL (mQTL) as a specific example.
+<!-- insert references here -->
+The Genotype-Tissue Expression (GTEx) consortium has set the standard for computing expression QTL (eQTL) and more recently mQTL across tissues. Their
+```{r}
+methy_annot <- as.data.table(getAnnotation(IlluminaHumanMethylation450kanno.ilmn12.hg19))
 richs_ancestry <- fread("../RICHS_genotyping/phg001102.v1.RICHS.genotype-calls-matrixfmt.MEGA_Consortium.c1.GRU/raw_data.geno.maf.mind.sex_check.het_filter.ibd_filter.eigenvec")
 subject_pheno <- fread("/scratch/st-dennisjk-1/wcasazza/RICHS_genotyping/RICHS_Subject_phenotypes.GRU.txt")
 sample_multi <- fread("/scratch/st-dennisjk-1/wcasazza/RICHS_genotyping/RICHS_Sample.MULTI.txt")
 fam <- read.delim("/scratch/st-dennisjk-1/wcasazza/RICHS_genotyping/phg001102.v1.RICHS.genotype-calls-matrixfmt.MEGA_Consortium.c1.GRU/plink_for_dbgap.fam",header=FALSE,sep="")
 mapping <- fread("RICHS_dbgap_GEO_subject_sample_mapping.csv")
-combined_meta <- subject_pheno %>% 
+combined_meta <- subject_pheno %>%
     left_join(
         sample_multi
-    )%>% filter(SAMPLE_USE == "Array_SNP") 
+    )%>% filter(SAMPLE_USE == "Array_SNP")
 richs_meta <- combined_meta
 richs_meta$IID <- richs_meta$SAMPLE_ID
 richs_meta_methy <- fread("../RICHS_DNAm/metadata.csv") %>% inner_join(mapping,by=c("sample"= "GSM_SampleID"))
@@ -59,10 +75,10 @@ covars <- richs_meta %>% as.data.frame() %>%
                     V6,
                     V7,
                     sex
-                ) %>% 
+                ) %>%
                 mutate(Sex= as.numeric(sex =="M"))%>%
-                dplyr::select(-sex) %>% 
-                as.data.frame() 
+                dplyr::select(-sex) %>%
+                as.data.frame()
 residual <- residuals(lm(as.matrix(t(betas_sub[!cpg %in% methy_annot[chr %in% c("chrX","chrY")]$Name ,-c(1)]))~., data=covars))
 methy_PC <- prcomp(residual, center=T,rank.= 20)
 ```
@@ -111,10 +127,10 @@ for(i in 0:20){
                     V6,
                     V7,
                     sex
-                )) %>% 
+                )) %>%
                 mutate(Sex= as.numeric(sex =="M"))%>%
-                dplyr::select(-sex)) %>% 
-                as.data.frame() 
+                dplyr::select(-sex)) %>%
+                as.data.frame()
 
     }else if (i==0){
           tmp <- t(cbind(richs_meta %>% as.data.frame() %>%
@@ -126,10 +142,10 @@ for(i in 0:20){
                     V6,
                     V7,
                     sex
-                )) %>% 
+                )) %>%
                 mutate(Sex= as.numeric(sex =="M"))%>%
-                dplyr::select(-sex)) %>% 
-                as.data.frame() 
+                dplyr::select(-sex)) %>%
+                as.data.frame()
     }else{
         tmp <- t(cbind(methy_PC$x[,1:i],
                 richs_meta %>% as.data.frame() %>%
@@ -141,11 +157,11 @@ for(i in 0:20){
                     V6,
                     V7,
                     sex
-                )) %>% 
+                )) %>%
                 mutate(Sex= as.numeric(sex =="M"))%>%
-                dplyr::select(-sex)) %>% 
-                
-                as.data.frame() 
+                dplyr::select(-sex)) %>%
+
+                as.data.frame()
 
     }
   colnames(tmp) <- richs_meta$IID

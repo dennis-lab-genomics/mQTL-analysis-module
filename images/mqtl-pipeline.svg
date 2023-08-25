@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="mqtl-pipeline.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.69664703"
+     inkscape:cx="396.18342"
+     inkscape:cy="410.53789"
+     inkscape:window-width="1920"
+     inkscape:window-height="1043"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1-5" />
+  <defs
+     id="defs2">
+    <marker
+       style="overflow:visible"
+       id="marker9675"
+       refX="3"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="TriangleStart"
+       markerWidth="2.3239999"
+       markerHeight="2.6867051"
+       viewBox="0 0 5.3244081 6.1553851"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid"
+       markerUnits="userSpaceOnUse">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path9673" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="TriangleStart"
+       refX="3"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="TriangleStart"
+       markerWidth="2.324"
+       markerHeight="2.68670522"
+       viewBox="0 0 5.3244081 6.1553851"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid"
+       markerUnits="userSpaceOnUse">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135" />
+    </marker>
+    <symbol
+       id="PredefinedProcess">
+      <title
+         id="title374">Predefined Process</title>
+      <desc
+         id="desc376">A formally defined sub-process.</desc>
+      <rect
+         x="15"
+         y="35"
+         width="120"
+         height="80"
+         style="stroke-width:2"
+         id="rect378" />
+      <rect
+         x="35"
+         y="35"
+         width="80"
+         height="80"
+         style="stroke-width:2"
+         id="rect380" />
+    </symbol>
+    <symbol
+       id="Process">
+      <title
+         id="title193">Process</title>
+      <desc
+         id="desc195">Any processing function.</desc>
+      <rect
+         x="15"
+         y="35"
+         width="120"
+         height="80"
+         style="stroke-width:2"
+         id="rect197" />
+    </symbol>
+    <symbol
+       id="Merge">
+      <title
+         id="title228">Merge</title>
+      <desc
+         id="desc230">Combine two or more sets of items into one set. (ISO)</desc>
+      <path
+         d="m 35,35 h 80 l -40,70 z"
+         style="stroke-width:2"
+         id="path232" />
+    </symbol>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       inkscape:label="Layer 1"
+       id="layer1-5"
+       transform="translate(7.2341974,-3.9201528)">
+      <path
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.24615px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker9675)"
+         d="M 51.025145,25.876367 V 96.294434"
+         id="path2459"
+         inkscape:connector-type="polyline"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.194803px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#TriangleStart)"
+         d="M 51.003862,107.20694 88.7382,133.12816"
+         id="path2461"
+         inkscape:connector-type="polyline"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.237761px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#TriangleStart)"
+         d="M 149.031,24.735244 V 61.085413"
+         id="path2463"
+         inkscape:connector-type="polyline"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.22448px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#TriangleStart)"
+         d="m 149.031,69.749241 v 27.01543"
+         id="path2465"
+         inkscape:connector-type="polyline"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.190587px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#TriangleStart)"
+         d="M 149.05339,107.24962 113.1098,133.12973"
+         id="path2467"
+         inkscape:connector-type="polyline"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.237916px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#TriangleStart)"
+         d="m 100.15665,145.01896 v 26.45542"
+         id="path2469"
+         inkscape:connector-type="polyline"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.208353px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#TriangleStart)"
+         d="m 100.15664,202.81895 v 22.30497"
+         id="path2471"
+         inkscape:connector-type="polyline"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.227387px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#TriangleStart)"
+         d="m 100.15664,240.48879 v 29.81328"
+         id="path2473"
+         inkscape:connector-type="polyline"
+         inkscape:connector-curvature="0" />
+      <g
+         id="g2446"
+         transform="translate(-0.47294577,-7.6415443)">
+        <use
+           xlink:href="#PredefinedProcess"
+           style="fill:#aaccee;stroke:#000000"
+           id="use691"
+           transform="matrix(0.46576373,0,0,0.33810287,16.565811,8.1602014)"
+           x="0"
+           y="0"
+           width="100%"
+           height="100%" />
+        <text
+           xml:space="preserve"
+           style="font-size:5.64444px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;stroke-width:0.264583"
+           x="52.236717"
+           y="28.019548"
+           id="text888"><tspan
+             sodipodi:role="line"
+             id="tspan886"
+             style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+             x="52.236717"
+             y="28.019548">Genotyping </tspan><tspan
+             sodipodi:role="line"
+             style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+             x="52.236717"
+             y="35.0751"
+             id="tspan890">&amp;</tspan><tspan
+             sodipodi:role="line"
+             style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+             x="52.236717"
+             y="42.13065"
+             id="tspan892">imputation</tspan></text>
+      </g>
+      <use
+         xlink:href="#PredefinedProcess"
+         style="fill:#aaccee;stroke:#000000"
+         id="use927"
+         transform="matrix(0.61459534,0,0,0.30955231,104.2797,1.5188261)"
+         x="0"
+         y="0"
+         width="100%"
+         height="100%" />
+      <text
+         xml:space="preserve"
+         style="font-size:5.64444px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;stroke-width:0.264583"
+         x="149.54019"
+         y="22.764648"
+         id="text959"><tspan
+           sodipodi:role="line"
+           style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+           x="149.54019"
+           y="22.764648"
+           id="tspan965">Molecular trait </tspan><tspan
+           sodipodi:role="line"
+           style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+           x="149.54019"
+           y="29.820198"
+           id="tspan967">quality control</tspan></text>
+      <g
+         id="g2457"
+         transform="translate(-25.602387,-22.123577)">
+        <use
+           xlink:href="#Process"
+           style="fill:#aaccee;stroke:#000000"
+           id="use981"
+           transform="matrix(0.37405357,0,0,0.2113129,146.57937,76.024351)"
+           x="0"
+           y="0"
+           width="100%"
+           height="100%" />
+        <text
+           xml:space="preserve"
+           style="font-size:5.64444px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+           x="154.98396"
+           y="93.977081"
+           id="text1014"><tspan
+             sodipodi:role="line"
+             id="tspan1012"
+             style="stroke-width:0.264583"
+             x="154.98396"
+             y="93.977081">Normalization</tspan></text>
+      </g>
+      <g
+         id="g1665"
+         transform="translate(0.056771,-48.003873)">
+        <use
+           xlink:href="#Process"
+           style="fill:#aaccee;stroke:#000000"
+           id="use1026"
+           transform="matrix(0.42195333,0,0,0.26286927,117.32773,135.56815)"
+           x="0"
+           y="0"
+           width="100%"
+           height="100%" />
+        <text
+           xml:space="preserve"
+           style="font-size:5.64444px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;stroke-width:0.264583"
+           x="149.59435"
+           y="153.85983"
+           id="text1055"><tspan
+             sodipodi:role="line"
+             id="tspan1053"
+             style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+             x="149.59435"
+             y="153.85983">Hidden variable </tspan><tspan
+             sodipodi:role="line"
+             style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+             x="149.59435"
+             y="160.91539"
+             id="tspan1627">estimation</tspan></text>
+      </g>
+      <g
+         id="g2439"
+         transform="translate(-12.679582,39.056612)">
+        <use
+           xlink:href="#Process"
+           style="fill:#aaccee;stroke:#000000"
+           id="use1494"
+           transform="matrix(0.54166025,0,0,0.2617937,23.080208,48.544234)"
+           x="0"
+           y="0"
+           width="100%"
+           height="100%" />
+        <text
+           xml:space="preserve"
+           style="font-size:5.64444px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;stroke-width:0.264583"
+           x="64.324844"
+           y="66.755249"
+           id="text1523"><tspan
+             sodipodi:role="line"
+             id="tspan1521"
+             style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+             x="64.324844"
+             y="66.755249">Estimate population </tspan><tspan
+             sodipodi:role="line"
+             style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+             x="64.324844"
+             y="73.810799"
+             id="tspan1653">structure</tspan></text>
+      </g>
+      <text
+         xml:space="preserve"
+         style="font-size:5.64444px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+         x="102.55653"
+         y="303.12915"
+         id="text1564"><tspan
+           sodipodi:role="line"
+           id="tspan1562"
+           style="stroke-width:0.264583"
+           x="102.55653"
+           y="303.12915" /></text>
+      <g
+         id="g2352"
+         transform="translate(-18.682413,-14.889561)">
+        <use
+           xlink:href="#Process"
+           style="fill:#aaccee;stroke:#000000"
+           id="use1535"
+           transform="matrix(0.70617735,0,0,0.34159853,65.875752,228.65864)"
+           x="0"
+           y="0"
+           width="100%"
+           height="100%" />
+        <text
+           xml:space="preserve"
+           style="font-size:5.64444px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;stroke-width:0.264583"
+           x="118.72054"
+           y="248.78017"
+           id="text1576"><tspan
+             sodipodi:role="line"
+             id="tspan1574"
+             style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+             x="118.72054"
+             y="248.78017">Multiple-test correction</tspan><tspan
+             sodipodi:role="line"
+             style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+             x="118.72054"
+             y="255.83572"
+             id="tspan1629">&amp;</tspan><tspan
+             sodipodi:role="line"
+             style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+             x="118.72054"
+             y="262.89127"
+             id="tspan1631">reporting significant results</tspan></text>
+      </g>
+      <g
+         id="g2358"
+         transform="translate(-9.987157,-17.973855)">
+        <use
+           xlink:href="#Process"
+           style="fill:#aaccee;stroke:#000000"
+           id="use1600"
+           transform="matrix(0.48632027,0,0,0.26378655,73.669783,279.24831)"
+           x="0"
+           y="0"
+           width="100%"
+           height="100%" />
+        <text
+           xml:space="preserve"
+           style="font-size:5.64444px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;stroke-width:0.264583"
+           x="110.02529"
+           y="297.06171"
+           id="text1580"><tspan
+             sodipodi:role="line"
+             id="tspan1578"
+             style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+             x="110.02529"
+             y="297.06171">Follow-up on </tspan><tspan
+             sodipodi:role="line"
+             style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+             x="110.02529"
+             y="304.11725"
+             id="tspan1633">nominal p values</tspan></text>
+      </g>
+      <g
+         id="g2345"
+         transform="translate(112.2367,-20.18129)">
+        <use
+           xlink:href="#Process"
+           style="fill:#aaccee;stroke:#000000"
+           id="use2300"
+           transform="matrix(0.48136599,0,0,0.26231432,-48.182503,144.46839)"
+           x="0"
+           y="0"
+           width="100%"
+           height="100%" />
+        <text
+           xml:space="preserve"
+           style="font-size:5.64444px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+           x="-39.041351"
+           y="165.69914"
+           id="text2335"><tspan
+             sodipodi:role="line"
+             id="tspan2333"
+             style="stroke-width:0.264583"
+             x="-39.041351"
+             y="165.69914">Define test regions</tspan></text>
+      </g>
+      <g
+         id="g795"
+         transform="translate(-99.537029,-4.7710179)">
+        <use
+           xlink:href="#Process"
+           style="fill:#aaccee;stroke:#000000"
+           id="use1158"
+           transform="matrix(0.81032967,0,0,0.45085956,138.91895,161.00605)"
+           x="0"
+           y="0"
+           width="100%"
+           height="100%" />
+        <g
+           id="g687"
+           transform="translate(0,0.49449679)">
+          <text
+             xml:space="preserve"
+             style="font-size:5.64444px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+             x="171.78015"
+             y="184.56412"
+             id="text1460"><tspan
+               sodipodi:role="line"
+               id="tspan1458"
+               style="font-weight:bold;stroke-width:0.264583"
+               x="171.78015"
+               y="184.56412">Linear regression</tspan></text>
+          <text
+             xml:space="preserve"
+             style="font-size:5.64444px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+             x="154.90471"
+             y="193.09119"
+             id="text417"><tspan
+               sodipodi:role="line"
+               id="tspan415"
+               style="stroke-width:0.264583"
+               x="154.90471"
+               y="193.09119">trait ~ (additional covariates) +</tspan><tspan
+               sodipodi:role="line"
+               style="stroke-width:0.264583"
+               x="154.90471"
+               y="200.14674"
+               id="tspan523">           (hidden variables) + </tspan><tspan
+               sodipodi:role="line"
+               style="stroke-width:0.264583"
+               x="154.90471"
+               y="207.20229"
+               id="tspan525">           (population structure)</tspan></text>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

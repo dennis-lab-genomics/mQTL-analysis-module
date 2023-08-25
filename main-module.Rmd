@@ -2,18 +2,25 @@
 title: "mQTL Training Module"
 author: "William Casazza"
 bibliography: references.bib
-format:
-  html:
+csl: nature.csl
+output: 
+  html_notebook:
     toc: true
-editor:
-  render-on-save: true
-
 ---
 
 # Objectives
 1. Basics of molecular quantitative trait locus (molQTL) analysis
 1. Running cis-methylation QTL analysis with the `matrixEQTL` package
 1. Post-hoc analyses involving molQTL and GWAS summary statistics
+# Quantitative trait loci (QTL) basics
+Quantitative trait loci are "mapped" by computing the association between SNP genotype and a quantitative trait like DNA methylation (DNAm), gene expression, or some other epigenetic mark. Analysis pipelines for computing these "molecular" QTL, or molQTL, can be complex, and fully understanding each of the steps in these pipelines in detail can be daunting. In this tutorial, I break down molQTL analysis into general steps based on what is used in by the Genotype-Tissue Expression (GTEx) consortium. GTEx has more or less set the standard for computing expression QTL (eQTL), and as of writing they have recently computed mQTL across 8 tissues [@thegtexconsortiumGTExConsortiumAtlas2020;@olivaDNAMethylationQTL2023]. Their approach to simply mapping molQTL is summarized in the figure below:
+![](images/mqtl-pipeline.svg)
+For the purpose of this tutorial, we will assume that the following has been done:
+- Quality control of Genotyping and molecular trait data (i.e., up until normalization)
+- Population structure estimation via computing genotype principal components @TODOCITE 
+
+# Preparing covariates for mQTL analysis
+The Rhode Island Children's Health Study (RICHS) 
 
 ## Required packages
 ```{r}
@@ -24,11 +31,18 @@ require(BiocManager)
 library(minfi) # BiocManager::install("minfi")
 library(IlluminaHumanMethylation450kanno.ilmn12.hg19) # BiocManager::install("IlluminaHumanMethylation450kanno.ilmn12.hg19")
 ```
+## Formatting data for `matrixEQTL`
+`matrixEQTL` is a package that efficiently runs linear regression through the use of large matrix operations.[@andreya.shabalinMatrixEQTLUltra2012] There are several alternative molQTL-mapping software that offer their own advantages such as fast permutation procedure for estimating significance[@ongenFastEfficientQTL2016;@delaneauCompleteToolSet2017] or alternatives to linear models.[@leeGenomeWideExpressionQuantitative2018] 
 
-# Quantitative trait loci (QTL) basics
-Quantitative trait loci are "mapped" by computing the association between SNP genotype and a quantitative trait like DNA methylation (DNAm), gene expression, or some other epigenetic mark. Analysis pipelines for computing these "molecular" QTL, or molQTL, can be complex, and fully understanding each of the steps in these pipelines in detail can be daunting. In this tutorial, I break down molQTL analysis into general steps, using a DNAm QTL (mQTL) as a specific example.
-<!-- insert references here -->
-The Genotype-Tissue Expression (GTEx) consortium has set the standard for computing expression QTL (eQTL) and more recently mQTL across tissues. Their
+`matrixEQTL` is relatively simple to run, and as it reports results from simple linear regression it is straightforward to interpret. The required formats are shown in their [online documentation](https://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/runit.html#own). In brief, we will need the following tab or whitespace-delimited files:
+- covariates: the first column being the ID of each covariate, with subsequent columns being each sample
+- Genotypes: The first column being the rsID or SNP-identifier, with subsequent columns being each sample
+- Quantitative trait: The first column being a "gene" id or molecular trait identifier, with subsequent columns being each sample
+- position files
+  - Genotypes: SNP identifier, chromosome, position
+  - Molecular trait: gene/trait identifier, chromosome, start, end
+
+### Loading in required data
 ```{r}
 methy_annot <- as.data.table(getAnnotation(IlluminaHumanMethylation450kanno.ilmn12.hg19))
 richs_ancestry <- fread("../RICHS_genotyping/phg001102.v1.RICHS.genotype-calls-matrixfmt.MEGA_Consortium.c1.GRU/raw_data.geno.maf.mind.sex_check.het_filter.ibd_filter.eigenvec")
@@ -186,4 +200,4 @@ chr21_res <- lapply(
 to_plot <- data.frame(PC=0:20,hits=unlist(chr21_res))
 ggplot(to_plot,aes(PC,hits)) + geom_point() + geom_smooth() + labs(x="PCs Included",y="mQTL Detected")+ theme_minimal()
 ```
-
+# References

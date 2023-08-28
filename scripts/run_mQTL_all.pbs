@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#PBS -l walltime=05:00:00,select=1:ncpus=20:mem=100gb
+#PBS -N RICHS_MQTL
+#PBS -A st-dennisjk-1
+#PBS -m abe
+#PBS -M willcasazza@gmail.com
+
+PROJECT_DIR=/scratch/st-dennisjk-1/wcasazza/mQTL-analysis-module/ #Modify this
+cd $PROJECT_DIR
+
+singularity exec /arc/project/st-dennisjk-1/software/rstudio/rstudio.sif\
+  Rscript run_cis_mqtl_75k.R --data_dir="data/" \
+        --SNP_fname="all_imputed_matrixeQTL.txt"\
+        --cov_file="mQTL_covar_9_methy_PC.txt"\
+        --cis_outfile="cis_mQTL_${mqtl_set}.txt"\
+        --snp_pos="snp_pos.txt"\
+        --methylation_fname="methylation_matrixeQTL.txt"\
+        --probe_pos="probe_pos.txt"\
+        --model="modelLINEAR"
+

@@ -8,7 +8,7 @@ argv <- commandArgs(
     SNP_fname = "all_imputed_snps_matrixeQTL.txt",
     methylation_fname = "methylation_data_matrixeQTL.txt",
     cov_file = "mQTL_covar_10_methy_PC.txt",
-    cis_outfile = "cis_mQTL_robinson.txt",
+    cis_outfile = "cis_mQTL.txt",
     snp_pos = "snp_pos.txt",
     probe_pos = "probe_pos.txt",
     model = "modelLINEAR"
@@ -16,12 +16,12 @@ argv <- commandArgs(
 )
 print(argv)
 use_model <- get(argv$model)
-# @TODO fill in functionality to have other input files and output strings etc
+
 data_dir <- argv$data_dir
 SNP_fname <- paste0(data_dir, argv$SNP_fname)
 methylation_fname <- paste0(data_dir, argv$methylation_fname)
 cis_outfile <- paste0(data_dir, argv$cis_outfile)
-pv_out_threshold <- 1.0 # @TODO check this
+pv_out_threshold <- 1.0 
 error_cov <- numeric()
 cis_dist <- 75000
 
@@ -35,7 +35,7 @@ methylation$LoadFile(methylation_fname)
 probe_pos <- read.delim(paste0(data_dir, argv$probe_pos), sep = "\t")
 
 covariates <- SlicedData$new()
-covariates$fileDelimiter <- " "
+covariates$fileDelimiter <- "\t"
 covariates$fileOmitCharacters <- "NA"
 covariates$fileSkipRows <- 1
 covariates$fileSkipColumns <- 1

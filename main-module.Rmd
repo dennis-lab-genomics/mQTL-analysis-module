@@ -22,19 +22,10 @@ For the purpose of this tutorial, we will assume that the following has been don
 # Preparing covariates for mQTL analysis
 The Rhode Island Children's Health Study (RICHS) 
 
-## Required packages
-```{r}
-library(tidyverse) # install.packages("tidyverse")
-library(data.table) # install.packages("data.table")
-# Bioconductor packages
-require(BiocManager)
-library(minfi) # BiocManager::install("minfi")
-library(IlluminaHumanMethylation450kanno.ilmn12.hg19) # BiocManager::install("IlluminaHumanMethylation450kanno.ilmn12.hg19")
-```
-## Formatting data for `matrixEQTL`
-`matrixEQTL` is a package that efficiently runs linear regression through the use of large matrix operations.[@andreya.shabalinMatrixEQTLUltra2012] There are several alternative molQTL-mapping software that offer their own advantages such as fast permutation procedure for estimating significance[@ongenFastEfficientQTL2016;@delaneauCompleteToolSet2017] or alternatives to linear models.[@leeGenomeWideExpressionQuantitative2018] 
+## Formatting data for `MatrixEQTL`
+`MatrixEQTL` is a package that efficiently runs linear regression through the use of large matrix operations.[@andreya.shabalinMatrixEQTLUltra2012] There are several alternative molQTL-mapping software that offer their own advantages such as fast permutation procedure for estimating significance[@ongenFastEfficientQTL2016;@delaneauCompleteToolSet2017] or alternatives to linear models.[@leeGenomeWideExpressionQuantitative2018] 
 
-`matrixEQTL` is relatively simple to run, and as it reports results from simple linear regression it is straightforward to interpret. The required formats are shown in their [online documentation](https://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/runit.html#own). In brief, we will need the following tab or whitespace-delimited files:
+`MatrixEQTL` is relatively simple to run, and as it reports results from simple linear regression it is straightforward to interpret. The required formats are shown in their [online documentation](https://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/runit.html#own). In brief, we will need the following tab or whitespace-delimited files:
 - covariates: the first column being the ID of each covariate, with subsequent columns being each sample
 - Genotypes: The first column being the rsID or SNP-identifier, with subsequent columns being each sample
 - Quantitative trait: The first column being a "gene" id or molecular trait identifier, with subsequent columns being each sample
@@ -42,44 +33,85 @@ library(IlluminaHumanMethylation450kanno.ilmn12.hg19) # BiocManager::install("Il
   - Genotypes: SNP identifier, chromosome, position
   - Molecular trait: gene/trait identifier, chromosome, start, end
 
+### Required packages
+```{r,echo=FALSE}
+# To install, uncomment lines below
+# install.packages("tidyverse")
+# install.packages("data.table")
+# install.packages("MatrixEQTL")
+# require(BiocManager)
+# BiocManager::install("minfi")
+# BiocManager::install("IlluminaHumanMethylation450kanno.ilmn12.hg19")
+library(tidyverse) 
+library(data.table) # Allows for fast reading and writing of text files
+library(MatrixEQTL)
+# Bioconductor packages
+library(minfi)
+library(IlluminaHumanMethylation450kanno.ilmn12.hg19) 
+```
+
 ### Loading in required data
+molQTL data are split into each set of measurements with only partially overlapping samples. This is for a variety of reasons. In the case of RICHS, it is because the DNAm data was first used in a separate publication consisting of more subjects,CITE with the genotpying data published separately as part of an eQTL analysis. CITE
+
+This means that we need to harmonize IDs across both the DNAm and genotyping data **and** their respective metadata, which makes it easier to ensure that samples are in the same order prior to running `MatrixEQTL`. Other software may do this reordering automatically based on IDs, but it is a good idea to match he order of samples based on a shared ID just in case this is not true. In the case of RICHS, we required a file mapping IDs from GEO, where we retrieved DNAm, to those on dbGaP.
+
+### Example: Assigning a common ID to DNAm and genotyping data and metadata
 ```{r}
-methy_annot <- as.data.table(getAnnotation(IlluminaHumanMethylation450kanno.ilmn12.hg19))
-richs_ancestry <- fread("../RICHS_genotyping/phg001102.v1.RICHS.genotype-calls-matrixfmt.MEGA_Consortium.c1.GRU/raw_data.geno.maf.mind.sex_check.het_filter.ibd_filter.eigenvec")
-subject_pheno <- fread("/scratch/st-dennisjk-1/wcasazza/RICHS_genotyping/RICHS_Subject_phenotypes.GRU.txt")
-sample_multi <- fread("/scratch/st-dennisjk-1/wcasazza/RICHS_genotyping/RICHS_Sample.MULTI.txt")
-fam <- read.delim("/scratch/st-dennisjk-1/wcasazza/RICHS_genotyping/phg001102.v1.RICHS.genotype-calls-matrixfmt.MEGA_Consortium.c1.GRU/plink_for_dbgap.fam",header=FALSE,sep="")
-mapping <- fread("RICHS_dbgap_GEO_subject_sample_mapping.csv")
-combined_meta <- subject_pheno %>%
+methy_annot <- as.data.table(
+  getAnnotation(
+    IlluminaHumanMethylation450kanno.ilmn12.hg19 # Information on Illumina 450K probes
+  )
+)
+richs_ancestry <- fread("data/population-structure.eigenvec") #Genotype PCs computed with plink
+pheno <- fread("data/phenotypes.txt") # phenotype/covariate information
+sample_multi <- fread("data/genotype-sample-ids.txt")
+fam <- read.delim("data/raw-data.fam",header=FALSE,sep="") # original RICHS genotype '.fam' file
+mapping <- fread("data/RICHS_dbgap_GEO_subject_sample_mapping.csv")
+
+# Create single metadata table with all non-hidden covariates and sample labels
+combined_meta <- pheno %>%
     left_join(
         sample_multi
     )%>% filter(SAMPLE_USE == "Array_SNP")
 richs_meta <- combined_meta
 richs_meta$IID <- richs_meta$SAMPLE_ID
-richs_meta_methy <- fread("../RICHS_DNAm/metadata.csv") %>% inner_join(mapping,by=c("sample"= "GSM_SampleID"))
+richs_meta_methy <- fread("data/methylation-metadata.csv") %>% inner_join(mapping,by=c("sample"= "GSM_SampleID"))
 richs_meta <- richs_meta %>% right_join(richs_ancestry,by=c("IID"="V2")) %>% right_join(richs_meta_methy,by="SAMPLE_ID") %>% filter(SAMPLE_ID %in% richs_ancestry$V2)
-betas_sub <- fread("processed_DNAm_RICHS_functional_norm.txt")
-genotype <- fread("../RICHS_genotyping/phg001102.v1.RICHS.genotype-calls-matrixfmt.MEGA_Consortium.c1.GRU/raw_data.imputed.r2_30.maf_mismatch.traw")
+
+methylation <- fread("data/processed_DNAm_RICHS_functional_norm.txt.gz") # Methylation data
+genotype <- fread("data/RICHS-genotype.traw.gz") # plink tab-delimited genotype format
+colnames(genotype) <- gsub(".*_","",colnames(genotype)) #part of genotype id before '_' character was redundant
 ```
 
-## Match Samples
+### Match Samples
 ```{r}
-colnames(genotype) <- gsub(".*_","",colnames(genotype))
-richs_meta <- richs_meta[IID %in% colnames(genotype) & sample %in% colnames(betas_sub)]
+# Filter to subjects with both genotype and DNAm
+richs_meta <- richs_meta[IID %in% colnames(genotype) & geo_accession %in% colnames(methylation)]
 gen_vars <- c(colnames(genotype)[1:6],richs_meta$IID)
 to_delete <- colnames(genotype)[!colnames(genotype)%in% gen_vars]
 genotype[,c(to_delete):=NULL]
-setcolorder(genotype,gen_vars)
-methy_vars <- c("cpg",richs_meta$sample)
-betas_sub <- betas_sub[,methy_vars,with=FALSE]
 
-```
-```{r}
-all(colnames(betas_sub)[-c(1)] == richs_meta$sample)
+# match sample order
+setcolorder(genotype,gen_vars)
+methy_vars <- c("cpg",richs_meta$geo_accession)
+methylation <- methylation[,methy_vars,with=FALSE]
+
+# Check if samples match
+all(colnames(methylation)[-c(1)] == richs_meta$geo_accession)
 all(colnames(genotype)[-c(1:6)] == richs_meta$IID)
 ```
-## Compute PCs
+### Compute DNAm PCs
+In addition to known variation due to measured covariates, we also account for "hidden" covariates in whichever quantitative trait we are measuring. "Hidden" covariates are any possible variable that affects global DNAm that could also explain the association between a single SNP and a quantitative trait CITE. This is computed a number of methods, most of which are closely tied to principal components analysis. For example, GTEx uses a variable number of PEER factors computed from gene expression to account for hidden variation,CITE but there are several others including SVA, HCP, or even PCA itself. 
+
+On the other hand, PCA itself is often easier to apply, and performs as well as or better than the methods listed above in reducing false positives, and in improving our power to detect molQTL. CITE We compute the optimal number of DNAm PCs to include using the "elbow" method. 
+First, we take a subset of SNPs, in this example those on chromosome 21, and compute mQTL accounting for an increasing number of principal components. The optimal number of PCs to include is when we stop detecting more mQTL with each successive PC.
+
+#### Example: PCA in RICHS DNAm
+In some cases, you may want to regress out or account for covariates affecting DNAm prior to computing PCs. This is conceptually similar to what is done with methods like PEER or HCP, or even COMBat, which is a commonly used method in processing DNAm for epigenome-wide association studies CITE. Below provides the option of performing this procedure in computing DNAm PCs, but note that it is not necessary and should be justified in writing up your analysis. 
+
+In this module, we will compute 20 DNAm PCs on all autosomes and the X chromosome as we plan to include X-chromosome analysis in our project. The option to regress out covariates below also removes the sex chromosomes from DNAm if desired.
 ```{r}
+REMOVE_COVARIATES <- FALSE # Change to TRUE to regress out covariates prior to PCA
 covars <- richs_meta %>% as.data.frame() %>%
                 dplyr::select(
                     age,
@@ -93,54 +125,36 @@ covars <- richs_meta %>% as.data.frame() %>%
                 mutate(Sex= as.numeric(sex =="M"))%>%
                 dplyr::select(-sex) %>%
                 as.data.frame()
-residual <- residuals(lm(as.matrix(t(betas_sub[!cpg %in% methy_annot[chr %in% c("chrX","chrY")]$Name ,-c(1)]))~., data=covars))
-methy_PC <- prcomp(residual, center=T,rank.= 20)
+if(REMOVE_COVARIATES == TRUE){
+  residual <- residuals(lm(as.matrix(t(methylation[!cpg %in% methy_annot[chr %in% c("chrX","chrY")]$Name ,-c(1)]))~., data=covars))
+  methy_PC <- prcomp(residual, center=T,rank.= 20)
+}else{
+  methy_PC <- prcomp(as.matrix(t(methylation[,-c(1)])), center=T,rank.= 20)
+}
+
 ```
 
 
+### Write out `MatrixEQTL` files
+Since we first need to find the proper number of DNAm PCs  to include in our model, we need to generate a covariate file for each additional PC we're adding, We need to generate genotype and methylation files for just chromosome 21 so that we have a subset to test these varying number of PCs.
 
-## Write data
-
-
+#### Covariate files
+Our model for this mQTL analysis is:
+$$ DNAm_j \sim (intercept)+SNP_i + \text{Sex} + \text{Gestational Age} + \text{Genotype PCs}_{1\dots 5} + \text{DNAm PCs}_{0\dots k}$$
+`MatrixEQTL` adds in the intercept term automatically:
 ```{r}
-#SNP POS
-fwrite(genotype[,.(SNP,CHR=paste0("chr",CHR),POS)],"matrix_eqtl_data/snp_pos.txt",sep="\t", quote=F)
-#SNP POS
-fwrite(genotype[CHR==21,.(SNP,CHR=paste0("chr",CHR),POS)],"matrix_eqtl_data/snp_pos_chr21.txt",sep = "\t", quote=F)
-#SNPs
-geno_vars <- colnames(genotype)[c(1,3:6)]
-genotype[,c(geno_vars):=NULL]
-fwrite(genotype,"matrix_eqtl_data/all_imputed_matrixeQTL.txt",sep = "\t",quote = F)
-#Methy POS
-fwrite(methy_annot[Name %in% betas_sub$cpg,.(geneid=Name,chr,s1=pos,s2=pos)], "matrix_eqtl_data/probe_pos.txt",sep = "\t",quote=F)
-#methy
-fwrite(betas_sub,"matrix_eqtl_data/methylation_matrixeQTL.txt",sep="\t",quote=F)
-
-
-#SNPs
-snp_pos <- fread("matrix_eqtl_data/snp_pos.txt")
-fwrite(genotype[SNP %in% snp_pos[CHR=="chr21"]$SNP],"matrix_eqtl_data/all_imputed_matrixeQTL_chr21.txt", sep = "\t", quote = F)
-#Methy POS
-fwrite(methy_annot[Name %in% betas_sub$cpg & chr=="chr21",.(geneid=Name, chr,s1=pos,s2=pos)], "matrix_eqtl_data/probe_pos_chr1.txt", sep = "\t", quote=F)
-chr1_cpg <- methy_annot[Name %in% betas_sub$cpg & chr == "chr21",]$Name
-#methy
-fwrite(betas_sub[cpg %in% chr1_cpg],"matrix_eqtl_data/methylation_matrixeQTL_chr21.txt",sep="\t", quote=F)
-```
-
-
-```{r}
-fmt <- "matrix_eqtl_data/mQTL_covar_%d_methy_PC.txt"
+fmt <- "data/mQTL_covar_%d_methy_PC.txt"
 for(i in 0:20){
     if (i==1){
         tmp <- t(cbind(PC1=methy_PC$x[,1:i],richs_meta %>% as.data.frame() %>%
                 dplyr::select(
                     age,
-                    V3,
+                    V3,# V3-V7 are the first 5 Genotyping PCs
                     V4,
                     V5,
                     V6,
                     V7,
-                    sex
+                    sex # we place sex last since MatrixEQTL has an option to include an interaction term for the last variable
                 )) %>%
                 mutate(Sex= as.numeric(sex =="M"))%>%
                 dplyr::select(-sex)) %>%
@@ -179,15 +193,54 @@ for(i in 0:20){
 
     }
   colnames(tmp) <- richs_meta$IID
-    write_delim(
-      tmp %>% rownames_to_column(var="id"),
-      path=sprintf(fmt,i))
+  fwrite(
+    tmp %>% rownames_to_column(var="id"),
+    file=sprintf(fmt,i),
+    sep="\t",
+    quote=F
+  )
 }
 ```
-## PC checking
-
+#### Genotype and methylation data
 ```{r}
-fmt <- "matrix_eqtl_data/cis_all_impute_mQTL_results_%d_methy_PC_chr21.txt"
+# SNP position files
+fwrite(genotype[,.(SNP,CHR=paste0("chr",CHR),POS)],"data/snp_pos.txt",sep="\t", quote=F)
+fwrite(genotype[CHR==21,.(SNP,CHR=paste0("chr",CHR),POS)],"data/snp_pos_chr21.txt",sep = "\t", quote=F)
+
+# Methylation position files
+fwrite(methy_annot[Name %in% methylation$cpg,.(geneid=Name,chr,s1=pos,s2=pos)], "data/probe_pos.txt",sep = "\t",quote=F)
+fwrite(methy_annot[Name %in% methylation$cpg & chr=="chr21",.(geneid=Name, chr,s1=pos,s2=pos)], "data/probe_pos_chr21.txt", sep = "\t", quote=F)
+
+# Genotype
+geno_vars <- colnames(genotype)[c(1,3:6)]
+genotype[,c(geno_vars):=NULL]
+fwrite(genotype,"data/all_imputed_matrixeQTL.txt",sep = "\t",quote = F)
+snp_pos <- fread("data/snp_pos.txt")
+fwrite(genotype[SNP %in% snp_pos[CHR=="chr21"]$SNP],"data/all_imputed_matrixeQTL_chr21.txt", sep = "\t", quote = F)
+
+# Methylation
+fwrite(methylation,"data/methylation_matrixeQTL.txt",sep="\t",quote=F)
+chr21_cpg <- methy_annot[Name %in% methylation$cpg & chr == "chr21",]$Name
+fwrite(methylation[cpg %in% chr21_cpg],"data/methylation_matrixeQTL_chr21.txt",sep="\t", quote=F)
+```
+
+#### Selecting the optimal number of PCs
+`MatrixEQTL` can be run to compute the association between all SNPs within 75 kb of a CpG site (CITE) using the R script [`run_cis_mQTL_75k.R`](scripts/run_cis_mQTL_75k.R):
+```{r,code=readLines("scripts/run_cis_mQTL_75k.R")}
+```
+
+By default, the above script will print all pairwise associations. If you are computing a large number of mQTL, for example using the EPIC array, you may want to restrict the output to only include associations with $p < 0.25$, which can be done by setting `pv_out_threshold <- 0.25`.
+
+For our PC experiment, we will use an array job to compute mQTL on chromosome 21 accounting for 0-20 DNAm PCs, running each set of covariates in parallel with the chromosome 21 data we saved before (see [run_mQTL_PCs.pbs](scripts/run_mQTL_PCs.pbs)). Pay attention to the location of your data, whether your account information is correct in the #PBS header, and whether your current R setup requires some adjustments such that your job can run the `Rscript` command with the `MatrixEQTL` package installed.
+
+This script is submitted as follows:
+```{bash}
+qsub scripts/run_mQTL_PCs.pbs
+```
+
+The output of the above script should be a list of mQTL files listing PCs from 0-20. We can plot the number of associations significant at a Bonferroni corrected $p < 0.05$ per each additional PC in our model:
+```{r}
+fmt <- "data/cis_all_impute_mQTL_results_%d_methy_PC_chr21.txt"
 chr21_res <- lapply(
   0:20,
   function(i){
@@ -195,9 +248,34 @@ chr21_res <- lapply(
     nrow(tmp[`p-value` < (0.05/ .N)])
   }
 )
-```
-```{r}
 to_plot <- data.frame(PC=0:20,hits=unlist(chr21_res))
 ggplot(to_plot,aes(PC,hits)) + geom_point() + geom_smooth() + labs(x="PCs Included",y="mQTL Detected")+ theme_minimal()
+```
+
+From above it looks like after 9 PCs, we stop improving our ability to detect mQTL. In larger sample sizes (e.g., $N > 250$), we often observe that the number of hits levels off at a certain number of PCs included in the model.
+
+## Running the final mQTL analysis
+We can modify the script we used to run `MatrixEQTL` for different numbers of PCs to simply run our entire cis-mQTL analysis for one set of covariates:
+```{bash}
+#!/bin/bash
+
+#PBS -l walltime=05:00:00,select=1:ncpus=20:mem=100gb
+#PBS -N RICHS_MQTL
+#PBS -A st-dennisjk-1
+#PBS -m abe
+#PBS -M willcasazza@gmail.com
+
+PROJECT_DIR=/scratch/st-dennisjk-1/wcasazza/mQTL-analysis-module/ #Modify this
+cd $PROJECT_DIR
+
+singularity exec /arc/project/st-dennisjk-1/software/rstudio/rstudio.sif\
+  Rscript run_cis_mqtl_75k.R --data_dir="data/" \
+        --SNP_fname="all_imputed_matrixeQTL.txt"\
+        --cov_file="mQTL_covar_9_methy_PC.txt"\
+        --cis_outfile="cis_mQTL_${mqtl_set}.txt"\
+        --snp_pos="snp_pos.txt"\
+        --methylation_fname="methylation_matrixeQTL.txt"\
+        --probe_pos="probe_pos.txt"\
+        --model="modelLINEAR"
 ```
 # References

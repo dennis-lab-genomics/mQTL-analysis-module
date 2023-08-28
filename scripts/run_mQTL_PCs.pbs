@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#PBS -l walltime=05:00:00,select=1:ncpus=32:mem=192gb
+#PBS -N mqtl_chr21_PCs
+#PBS -A st-dennisjk-1
+#PBS -m abe
+#PBS -M willcasazza@gmail.com
+
+PROJECT_DIR=/scratch/st-dennisjk-1/wcasazza/mQTL-analysis-module/ #Modify this
+cd $PROJECT_DIR
+run_mqtl_chr(){
+   singularity exec /project/st-dennisjk-1/software/rstudio/rstudio.sif\
+    Rscript scripts/run_cis_mqtl_75k.R --data_dir="data/" \
+      --SNP_fname="all_imputed_matrixeQTL_chr21.txt"\
+      --cov_file="mQTL_covar_${1}_methy_PC.txt"\
+      --cis_outfile="cis_all_impute_mQTL_results_${1}_methy_PC_chr21.txt"\
+      --snp_pos="snp_pos_chr21.txt"\
+      --methylation_fname="methylation_matrixeQTL_chr21.txt"\
+      --probe_pos="probe_pos_chr21.txt"
+}
+
+module load parallel
+module load singularity
+
+export -f run_mqtl_chr
+parallel run_mqtl_chr ::: {0..20}

@@ -6,34 +6,65 @@ csl: nature.csl
 output: 
   html_notebook:
     toc: true
+editor_options: 
+  markdown: 
+    wrap: 80
 ---
 
 # Objectives
-1. Basics of molecular quantitative trait locus (molQTL) analysis
-1. Running cis-methylation QTL analysis with the `matrixEQTL` package
-1. Post-hoc analyses involving molQTL and GWAS summary statistics
-# Quantitative trait loci (QTL) basics
-Quantitative trait loci are "mapped" by computing the association between SNP genotype and a quantitative trait like DNA methylation (DNAm), gene expression, or some other epigenetic mark. Analysis pipelines for computing these "molecular" QTL, or molQTL, can be complex, and fully understanding each of the steps in these pipelines in detail can be daunting. In this tutorial, I break down molQTL analysis into general steps based on what is used in by the Genotype-Tissue Expression (GTEx) consortium. GTEx has more or less set the standard for computing expression QTL (eQTL), and as of writing they have recently computed mQTL across 8 tissues [@thegtexconsortiumGTExConsortiumAtlas2020;@olivaDNAMethylationQTL2023]. Their approach to simply mapping molQTL is summarized in the figure below:
-![](images/mqtl-pipeline.svg)
-For the purpose of this tutorial, we will assume that the following has been done:
-- Quality control of Genotyping and molecular trait data (i.e., up until normalization)
-- Population structure estimation via computing genotype principal components @TODOCITE 
+
+1.  Basics of molecular quantitative trait locus (molQTL) analysis
+2.  Running cis-methylation QTL analysis with the `matrixEQTL` package
+3.  Post-hoc analyses involving molQTL and GWAS summary statistics \#
+    Quantitative trait loci (QTL) basics Quantitative trait loci are "mapped" by
+    computing the association between SNP genotype and a quantitative trait like
+    DNA methylation (DNAm), gene expression, or some other epigenetic mark.
+    Analysis pipelines for computing these "molecular" QTL, or molQTL, can be
+    complex, and fully understanding each of the steps in these pipelines in
+    detail can be daunting. In this tutorial, I break down molQTL analysis into
+    general steps based on what is used in by the Genotype-Tissue Expression
+    (GTEx) consortium. GTEx has more or less set the standard for computing
+    expression QTL (eQTL), and as of writing they have recently computed mQTL
+    across 8 tissues [@thegtexconsortiumGTExConsortiumAtlas2020;
+    @olivaDNAMethylationQTL2023]. Their approach to simply mapping molQTL is
+    summarized in the figure below: ![](images/mqtl-pipeline.svg) For the
+    purpose of this tutorial, we will assume that the following has been done:
+
+-   Quality control of Genotyping and molecular trait data (i.e., up until
+    normalization)
+-   Population structure estimation via computing genotype principal
+    components[@sulPopulationStructureGenetic2018;
+    @pricePrincipalComponentsAnalysis2006;
+    @elhaikPrincipalComponentAnalyses2022]
 
 # Preparing covariates for mQTL analysis
-The Rhode Island Children's Health Study (RICHS) 
+
+The Rhode Island Children's Health Study (RICHS)
 
 ## Formatting data for `MatrixEQTL`
-`MatrixEQTL` is a package that efficiently runs linear regression through the use of large matrix operations.[@andreya.shabalinMatrixEQTLUltra2012] There are several alternative molQTL-mapping software that offer their own advantages such as fast permutation procedure for estimating significance[@ongenFastEfficientQTL2016;@delaneauCompleteToolSet2017] or alternatives to linear models.[@leeGenomeWideExpressionQuantitative2018] 
 
-`MatrixEQTL` is relatively simple to run, and as it reports results from simple linear regression it is straightforward to interpret. The required formats are shown in their [online documentation](https://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/runit.html#own). In brief, we will need the following tab or whitespace-delimited files:
-- covariates: the first column being the ID of each covariate, with subsequent columns being each sample
-- Genotypes: The first column being the rsID or SNP-identifier, with subsequent columns being each sample
-- Quantitative trait: The first column being a "gene" id or molecular trait identifier, with subsequent columns being each sample
-- position files
-  - Genotypes: SNP identifier, chromosome, position
-  - Molecular trait: gene/trait identifier, chromosome, start, end
+`MatrixEQTL` is a package that efficiently runs linear regression through the
+use of large matrix operations.[@andreya.shabalinMatrixEQTLUltra2012] There are
+several alternative molQTL-mapping software that offer their own advantages such
+as fast permutation procedure for estimating
+significance[@ongenFastEfficientQTL2016; @delaneauCompleteToolSet2017] or
+alternatives to linear models.[@leeGenomeWideExpressionQuantitative2018]
+
+`MatrixEQTL` is relatively simple to run, and as it reports results from simple
+linear regression it is straightforward to interpret. The required formats are
+shown in their [online
+documentation](https://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/runit.html#own).
+In brief, we will need the following tab or whitespace-delimited files: -
+covariates: the first column being the ID of each covariate, with subsequent
+columns being each sample - Genotypes: The first column being the rsID or
+SNP-identifier, with subsequent columns being each sample - Quantitative trait:
+The first column being a "gene" id or molecular trait identifier, with
+subsequent columns being each sample - position files - Genotypes: SNP
+identifier, chromosome, position - Molecular trait: gene/trait identifier,
+chromosome, start, end
 
 ### Required packages
+
 ```{r,echo=FALSE}
 # To install, uncomment lines below
 # install.packages("tidyverse")
@@ -51,11 +82,24 @@ library(IlluminaHumanMethylation450kanno.ilmn12.hg19)
 ```
 
 ### Loading in required data
-molQTL data are split into each set of measurements with only partially overlapping samples. This is for a variety of reasons. In the case of RICHS, it is because the DNAm data was first used in a separate publication consisting of more subjects,CITE with the genotpying data published separately as part of an eQTL analysis. CITE
 
-This means that we need to harmonize IDs across both the DNAm and genotyping data **and** their respective metadata, which makes it easier to ensure that samples are in the same order prior to running `MatrixEQTL`. Other software may do this reordering automatically based on IDs, but it is a good idea to match he order of samples based on a shared ID just in case this is not true. In the case of RICHS, we required a file mapping IDs from GEO, where we retrieved DNAm, to those on dbGaP.
+molQTL data are split into each set of measurements with only partially
+overlapping samples. This is for a variety of reasons. In the case of RICHS, it
+is because the DNAm data was first used in a separate publication consisting of
+more subjects,[@paquetteRegionsVariableDNA2016a] with the genotpying data
+published separately as part of an eQTL analysis.
+[@pengExpressionQuantitativeTrait2017; @pengGeneticRegulationPlacental2018]
+
+This means that we need to harmonize IDs across both the DNAm and genotyping
+data **and** their respective metadata, which makes it easier to ensure that
+samples are in the same order prior to running `MatrixEQTL`. Other software may
+do this reordering automatically based on IDs, but it is a good idea to match he
+order of samples based on a shared ID just in case this is not true. In the case
+of RICHS, we required a file mapping IDs from GEO, where we retrieved DNAm, to
+those on dbGaP.
 
 ### Example: Assigning a common ID to DNAm and genotyping data and metadata
+
 ```{r}
 methy_annot <- as.data.table(
   getAnnotation(
@@ -84,6 +128,7 @@ colnames(genotype) <- gsub(".*_","",colnames(genotype)) #part of genotype id bef
 ```
 
 ### Match Samples
+
 ```{r}
 # Filter to subjects with both genotype and DNAm
 richs_meta <- richs_meta[IID %in% colnames(genotype) & geo_accession %in% colnames(methylation)]
@@ -100,16 +145,45 @@ methylation <- methylation[,methy_vars,with=FALSE]
 all(colnames(methylation)[-c(1)] == richs_meta$geo_accession)
 all(colnames(genotype)[-c(1:6)] == richs_meta$IID)
 ```
-### Compute DNAm PCs
-In addition to known variation due to measured covariates, we also account for "hidden" covariates in whichever quantitative trait we are measuring. "Hidden" covariates are any possible variable that affects global DNAm that could also explain the association between a single SNP and a quantitative trait CITE. This is computed a number of methods, most of which are closely tied to principal components analysis. For example, GTEx uses a variable number of PEER factors computed from gene expression to account for hidden variation,CITE but there are several others including SVA, HCP, or even PCA itself. 
 
-On the other hand, PCA itself is often easier to apply, and performs as well as or better than the methods listed above in reducing false positives, and in improving our power to detect molQTL. CITE We compute the optimal number of DNAm PCs to include using the "elbow" method. 
-First, we take a subset of SNPs, in this example those on chromosome 21, and compute mQTL accounting for an increasing number of principal components. The optimal number of PCs to include is when we stop detecting more mQTL with each successive PC.
+### Compute DNAm PCs
+
+In addition to known variation due to measured covariates, we also account for
+"hidden" covariates in whichever quantitative trait we are measuring. "Hidden"
+covariates are any possible variable that affects global DNAm that could also
+explain the association between a single SNP and a quantitative
+trait.[@mostafaviNormalizingRNASequencingData2013;@zhouPCAOutperformsPopular2022]
+This is computed a number of methods, most of which are closely tied to
+principal components analysis. For example, GTEx uses a variable number of PEER
+factors computed from gene expression to account for hidden
+variation,[@thegtexconsortiumGTExConsortiumAtlas2020;
+@stegleUsingProbabilisticEstimation2012] but there are several others including
+SVA, HCP, or PCA alone.[@mostafaviNormalizingRNASequencingData2013;
+@zhouPCAOutperformsPopular2022; @leek2007a; @leekSvaPackageRemoving2012]
+
+On the other hand, PCA itself is often easier to apply, and performs as well as
+or better than the methods listed above in reducing false positives, and in
+improving our power to detect molQTL.[@zhouPCAOutperformsPopular2022] We compute
+the optimal number of DNAm PCs to include using the "elbow" method. First, we
+take a subset of SNPs, in this example those on chromosome 21, and compute mQTL
+accounting for an increasing number of principal components. The optimal number
+of PCs to include is when we stop detecting more mQTL with each successive PC.
 
 #### Example: PCA in RICHS DNAm
-In some cases, you may want to regress out or account for covariates affecting DNAm prior to computing PCs. This is conceptually similar to what is done with methods like PEER or HCP, or even COMBat, which is a commonly used method in processing DNAm for epigenome-wide association studies CITE. Below provides the option of performing this procedure in computing DNAm PCs, but note that it is not necessary and should be justified in writing up your analysis. 
 
-In this module, we will compute 20 DNAm PCs on all autosomes and the X chromosome as we plan to include X-chromosome analysis in our project. The option to regress out covariates below also removes the sex chromosomes from DNAm if desired.
+In some cases, you may want to regress out or account for covariates affecting
+DNAm prior to computing PCs. This is conceptually similar to what is done with
+methods like PEER or HCP, or even ComBat, which is a commonly used method in
+processing DNAm for epigenome-wide association
+studies.[@stegleUsingProbabilisticEstimation2012;
+@mostafaviNormalizingRNASequencingData2013; @leekSvaPackageRemoving2012] Below,
+I included the option of performing this procedure before computing DNAm PCs,
+but note that it is not necessary and that you should have a justification for
+doing so when writing up your analysis.
+
+In this module, we will compute 20 DNAm PCs using methylation from all autosomes
+and the X chromosome (plan to include X-chromosome analysis in our project).
+
 ```{r}
 REMOVE_COVARIATES <- FALSE # Change to TRUE to regress out covariates prior to PCA
 covars <- richs_meta %>% as.data.frame() %>%
@@ -134,14 +208,19 @@ if(REMOVE_COVARIATES == TRUE){
 
 ```
 
-
 ### Write out `MatrixEQTL` files
-Since we first need to find the proper number of DNAm PCs  to include in our model, we need to generate a covariate file for each additional PC we're adding, We need to generate genotype and methylation files for just chromosome 21 so that we have a subset to test these varying number of PCs.
+
+Since we first need to find the proper number of DNAm PCs to include in our
+model, we need to generate a covariate file for each additional PC we're adding,
+We need to generate genotype and methylation files for just chromosome 21 so
+that we have a subset to test these varying number of PCs.
 
 #### Covariate files
+
 Our model for this mQTL analysis is:
 $$ DNAm_j \sim (intercept)+SNP_i + \text{Sex} + \text{Gestational Age} + \text{Genotype PCs}_{1\dots 5} + \text{DNAm PCs}_{0\dots k}$$
 `MatrixEQTL` adds in the intercept term automatically:
+
 ```{r}
 fmt <- "data/mQTL_covar_%d_methy_PC.txt"
 for(i in 0:20){
@@ -201,7 +280,9 @@ for(i in 0:20){
   )
 }
 ```
+
 #### Genotype and methylation data
+
 ```{r}
 # SNP position files
 fwrite(genotype[,.(SNP,CHR=paste0("chr",CHR),POS)],"data/snp_pos.txt",sep="\t", quote=F)
@@ -225,20 +306,44 @@ fwrite(methylation[cpg %in% chr21_cpg],"data/methylation_matrixeQTL_chr21.txt",s
 ```
 
 #### Selecting the optimal number of PCs
-`MatrixEQTL` can be run to compute the association between all SNPs within 75 kb of a CpG site (CITE) using the R script [`run_cis_mQTL_75k.R`](scripts/run_cis_mQTL_75k.R):
-```{r,code=readLines("scripts/run_cis_mQTL_75k.R")}
+
+`MatrixEQTL` can be run to compute the association between all SNPs within 75 kb
+of a CpG site[@smithMethylationQuantitativeTrait2014;
+@doMechanismsDiseaseAssociations2016; @shiCharacterizingGeneticBasis2014;
+@zhangLinkingGeneticArchitecture2014] using the R script
+[`run_cis_mQTL_75k.R`](scripts/run_cis_mQTL_75k.R):
+
+```{r,file='scripts/run_cis_mqtl_75k.R'}
 ```
 
-By default, the above script will print all pairwise associations. If you are computing a large number of mQTL, for example using the EPIC array, you may want to restrict the output to only include associations with $p < 0.25$, which can be done by setting `pv_out_threshold <- 0.25`.
+By default, the above script will print all pairwise associations. If you are
+computing a large number of mQTL, for example using the EPIC array, you may want
+to restrict the output to only include associations with $p < 0.25$, which can
+be done by setting `pv_out_threshold <- 0.25`.
 
-For our PC experiment, we will use an array job to compute mQTL on chromosome 21 accounting for 0-20 DNAm PCs, running each set of covariates in parallel with the chromosome 21 data we saved before (see [run_mQTL_PCs.pbs](scripts/run_mQTL_PCs.pbs)). Pay attention to the location of your data, whether your account information is correct in the #PBS header, and whether your current R setup requires some adjustments such that your job can run the `Rscript` command with the `MatrixEQTL` package installed.
+For our PC experiment, we will use an array job to compute mQTL on chromosome 21
+accounting for 0-20 DNAm PCs, running each set of covariates in parallel with
+the chromosome 21 data we saved before. See
+[run_mQTL_PCs.pbs](scripts/run_mQTL_PCs.pbs):
+
+```{bash, file='scripts/run_mQTL_PCs.pbs'}
+```
+
+Pay attention to the location of your data, whether your account information is
+correct in the #PBS header, and whether your current R setup requires some
+adjustments such that your job can run the `Rscript` command with the
+`MatrixEQTL` package installed.
 
 This script is submitted as follows:
+
 ```{bash}
 qsub scripts/run_mQTL_PCs.pbs
 ```
 
-The output of the above script should be a list of mQTL files listing PCs from 0-20. We can plot the number of associations significant at a Bonferroni corrected $p < 0.05$ per each additional PC in our model:
+The output of the above script should be a list of mQTL files listing PCs from
+0-20. We can plot the number of associations significant at a Bonferroni
+corrected $p < 0.05$ per each additional PC in our model:
+
 ```{r}
 fmt <- "data/cis_all_impute_mQTL_results_%d_methy_PC_chr21.txt"
 chr21_res <- lapply(
@@ -252,30 +357,17 @@ to_plot <- data.frame(PC=0:20,hits=unlist(chr21_res))
 ggplot(to_plot,aes(PC,hits)) + geom_point() + geom_smooth() + labs(x="PCs Included",y="mQTL Detected")+ theme_minimal()
 ```
 
-From above it looks like after 9 PCs, we stop improving our ability to detect mQTL. In larger sample sizes (e.g., $N > 250$), we often observe that the number of hits levels off at a certain number of PCs included in the model.
+From above it looks like after 9 PCs, we stop improving our ability to detect
+mQTL. In larger sample sizes (e.g., $N > 250$), we often observe that the number
+of hits levels off at a certain number of PCs included in the model.
 
 ## Running the final mQTL analysis
-We can modify the script we used to run `MatrixEQTL` for different numbers of PCs to simply run our entire cis-mQTL analysis for one set of covariates:
-```{bash}
-#!/bin/bash
 
-#PBS -l walltime=05:00:00,select=1:ncpus=20:mem=100gb
-#PBS -N RICHS_MQTL
-#PBS -A st-dennisjk-1
-#PBS -m abe
-#PBS -M willcasazza@gmail.com
+We can modify the script we used to run `MatrixEQTL` for different numbers of
+PCs to simply run our entire cis-mQTL analysis for one set of covariates. See
+[run_mQTL_all.pbs](scripts/run_mQTL_all.pbs)
 
-PROJECT_DIR=/scratch/st-dennisjk-1/wcasazza/mQTL-analysis-module/ #Modify this
-cd $PROJECT_DIR
-
-singularity exec /arc/project/st-dennisjk-1/software/rstudio/rstudio.sif\
-  Rscript run_cis_mqtl_75k.R --data_dir="data/" \
-        --SNP_fname="all_imputed_matrixeQTL.txt"\
-        --cov_file="mQTL_covar_9_methy_PC.txt"\
-        --cis_outfile="cis_mQTL_${mqtl_set}.txt"\
-        --snp_pos="snp_pos.txt"\
-        --methylation_fname="methylation_matrixeQTL.txt"\
-        --probe_pos="probe_pos.txt"\
-        --model="modelLINEAR"
+```{bash, file='scripts/runmQTL_all.pbs'}
 ```
+
 # References

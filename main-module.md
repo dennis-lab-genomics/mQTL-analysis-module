@@ -2,55 +2,59 @@ mQTL Training Module
 ================
 William Casazza
 
-  - [Objectives](#objectives)
+- [Objectives](#objectives)
+- [Quantitative trait loci (QTL)
+  basics](#quantitative-trait-loci-qtl-basics)
+- [Example: mQTL analysis in the RICHS
+  study](#example-mqtl-analysis-in-the-richs-study)
+  - [Required packages](#required-packages)
+  - [Loading in required data](#loading-in-required-data)
+  - [Assigning a common ID to DNAm and genotyping data and
+    metadata](#assigning-a-common-id-to-dnam-and-genotyping-data-and-metadata)
+  - [Match Samples](#match-samples)
   - [Preparing covariates for mQTL
     analysis](#preparing-covariates-for-mqtl-analysis)
-      - [Formatting data for
-        `MatrixEQTL`](#formatting-data-for-matrixeqtl)
-          - [Required packages](#required-packages)
-          - [Loading in required data](#loading-in-required-data)
-          - [Example: Assigning a common ID to DNAm and genotyping data
-            and
-            metadata](#example-assigning-a-common-id-to-dnam-and-genotyping-data-and-metadata)
-          - [Match Samples](#match-samples)
-          - [Compute DNAm PCs](#compute-dnam-pcs)
-          - [Write out `MatrixEQTL` files](#write-out-matrixeqtl-files)
-      - [Running the final mQTL
-        analysis](#running-the-final-mqtl-analysis)
-  - [References](#references)
+    - [Hidden Covariates](#hidden-covariates)
+    - [Formatting `MatrixEQTL` files](#formatting-matrixeqtl-files)
+- [Running the final mQTL analysis](#running-the-final-mqtl-analysis)
+- [References](#references)
 
 # Objectives
 
 1.  Basics of molecular quantitative trait locus (molQTL) analysis
 2.  Running cis-methylation QTL analysis with the `matrixEQTL` package
-3.  Post-hoc analyses involving molQTL and GWAS summary statistics \#
-    Quantitative trait loci (QTL) basics Quantitative trait loci are
-    “mapped” by computing the association between SNP genotype and a
-    quantitative trait like DNA methylation (DNAm), gene expression, or
-    some other epigenetic mark. Analysis pipelines for computing these
-    “molecular” QTL, or molQTL, can be complex, and fully
-    understanding each of the steps in these pipelines in detail can be
-    daunting. In this tutorial, I break down molQTL analysis into
-    general steps based on what is used in by the Genotype-Tissue
-    Expression (GTEx) consortium. GTEx has more or less set the standard
-    for computing expression QTL (eQTL), and as of writing they have
-    recently computed mQTL across 8 tissues.<sup>1,2</sup> Their
-    approach to simply mapping molQTL is summarized in the figure below:
-    ![](images/mqtl-pipeline.svg)
+3.  Post-hoc analyses involving molQTL and GWAS summary statistics
+
+# Quantitative trait loci (QTL) basics
+
+Quantitative trait loci are “mapped” by computing the association
+between SNP genotype and a quantitative trait likeDNA methylation
+(DNAm), gene expression, or some other epigenetic mark. Analysis
+pipelines for computing these “molecular” QTL, or molQTL, can be
+complex, and fully understanding each of the steps in these pipelines in
+detail can be daunting. In this tutorial, I break down molQTL analysis
+into general steps that are based on what is used by the Genotype-Tissue
+Expression (GTEx) consortium. GTEx has set the standard for computing
+expression QTL (eQTL), and as of writing they have computed mQTL across
+8 tissues<sup>1,2</sup>. Their approach is summarized in the figure
+below: ![](images/mqtl-pipeline.svg)
 
 For the purpose of this tutorial, we will assume that the following has
 been done:
 
-  - Quality control of Genotyping and molecular trait data (i.e., up
-    until normalization)
-  - Population structure estimation via computing genotype principal
-    components<sup>3–5</sup>
+- Quality control of Genotyping and molecular trait data (i.e., up until
+  normalization)
+- Population structure estimation via computing genotype principal
+  components<sup>3–5</sup>
 
-# Preparing covariates for mQTL analysis
+# Example: mQTL analysis in the RICHS study
 
-The Rhode Island Children’s Health Study (RICHS)
-
-## Formatting data for `MatrixEQTL`
+We will be using data from the Rhode Island Child Health Study (RICHS),
+which contains 450K Array Data for DNAm and SNP genotype for roughly
+$N=136$ placental samples. The original data can be requested from
+[GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE75248) and
+[dbGaP](https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs001586.v1.p1).
+\## Formatting data for `MatrixEQTL`
 
 `MatrixEQTL` is a package that efficiently runs linear regression
 through the use of large matrix operations.<sup>6</sup> There are
@@ -62,224 +66,20 @@ significance<sup>7,8</sup> or alternatives to linear models.<sup>9</sup>
 simple linear regression it is straightforward to interpret. The
 required formats are shown in their [online
 documentation](https://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/runit.html#own).
-In brief, we will need the following tab or whitespace-delimited files:
-- covariates: the first column being the ID of each covariate, with
-subsequent columns being each sample - Genotypes: The first column being
-the rsID or SNP-identifier, with subsequent columns being each sample -
-Quantitative trait: The first column being a “gene” id or molecular
-trait identifier, with subsequent columns being each sample - position
-files - Genotypes: SNP identifier, chromosome, position - Molecular
-trait: gene/trait identifier, chromosome, start, end
+In brief, we will need the following tab or whitespace-delimited
+files: - covariates: the first column being the ID of each covariate,
+with subsequent columns being each sample - Genotypes: The first column
+being the rsID or SNP-identifier, with subsequent columns being each
+sample - Quantitative trait: The first column being a “gene” id or
+molecular trait identifier, with subsequent columns being each sample -
+position files - Genotypes: SNP identifier, chromosome, position -
+Molecular trait: gene/trait identifier, chromosome, start, end
 
 ### Required packages
 
-    ## Warning: package 'tidyverse' was built under R version 4.0.3
-
-    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
-
-    ## ✔ ggplot2 3.3.3     ✔ purrr   0.3.4
-    ## ✔ tibble  3.1.0     ✔ dplyr   1.0.4
-    ## ✔ tidyr   1.1.3     ✔ stringr 1.4.0
-    ## ✔ readr   1.4.0     ✔ forcats 0.5.1
-
-    ## Warning: package 'ggplot2' was built under R version 4.0.3
-
-    ## Warning: package 'tibble' was built under R version 4.0.3
-
-    ## Warning: package 'tidyr' was built under R version 4.0.3
-
-    ## Warning: package 'readr' was built under R version 4.0.3
-
-    ## Warning: package 'dplyr' was built under R version 4.0.3
-
-    ## Warning: package 'forcats' was built under R version 4.0.3
-
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-    ## ✖ dplyr::filter() masks stats::filter()
-    ## ✖ dplyr::lag()    masks stats::lag()
-
-    ## Warning: package 'data.table' was built under R version 4.0.3
-
-    ## 
-    ## Attaching package: 'data.table'
-
-    ## The following objects are masked from 'package:dplyr':
-    ## 
-    ##     between, first, last
-
-    ## The following object is masked from 'package:purrr':
-    ## 
-    ##     transpose
-
-    ## Loading required package: BiocGenerics
-
-    ## Loading required package: parallel
-
-    ## 
-    ## Attaching package: 'BiocGenerics'
-
-    ## The following objects are masked from 'package:parallel':
-    ## 
-    ##     clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
-    ##     clusterExport, clusterMap, parApply, parCapply, parLapply,
-    ##     parLapplyLB, parRapply, parSapply, parSapplyLB
-
-    ## The following objects are masked from 'package:MatrixEQTL':
-    ## 
-    ##     colnames, rownames
-
-    ## The following objects are masked from 'package:dplyr':
-    ## 
-    ##     combine, intersect, setdiff, union
-
-    ## The following objects are masked from 'package:stats':
-    ## 
-    ##     IQR, mad, sd, var, xtabs
-
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     anyDuplicated, append, as.data.frame, basename, cbind, colnames,
-    ##     dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
-    ##     grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
-    ##     order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
-    ##     rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
-    ##     union, unique, unsplit, which, which.max, which.min
-
-    ## Loading required package: GenomicRanges
-
-    ## Loading required package: stats4
-
-    ## Loading required package: S4Vectors
-
-    ## 
-    ## Attaching package: 'S4Vectors'
-
-    ## The following objects are masked from 'package:data.table':
-    ## 
-    ##     first, second
-
-    ## The following objects are masked from 'package:dplyr':
-    ## 
-    ##     first, rename
-
-    ## The following object is masked from 'package:tidyr':
-    ## 
-    ##     expand
-
-    ## The following object is masked from 'package:base':
-    ## 
-    ##     expand.grid
-
-    ## Loading required package: IRanges
-
-    ## 
-    ## Attaching package: 'IRanges'
-
-    ## The following object is masked from 'package:data.table':
-    ## 
-    ##     shift
-
-    ## The following objects are masked from 'package:dplyr':
-    ## 
-    ##     collapse, desc, slice
-
-    ## The following object is masked from 'package:purrr':
-    ## 
-    ##     reduce
-
-    ## Loading required package: GenomeInfoDb
-
-    ## Loading required package: SummarizedExperiment
-
-    ## Loading required package: Biobase
-
-    ## Welcome to Bioconductor
-    ## 
-    ##     Vignettes contain introductory material; view with
-    ##     'browseVignettes()'. To cite Bioconductor, see
-    ##     'citation("Biobase")', and for packages 'citation("pkgname")'.
-
-    ## Loading required package: DelayedArray
-
-    ## Loading required package: matrixStats
-
-    ## Warning: package 'matrixStats' was built under R version 4.0.3
-
-    ## 
-    ## Attaching package: 'matrixStats'
-
-    ## The following objects are masked from 'package:Biobase':
-    ## 
-    ##     anyMissing, rowMedians
-
-    ## The following object is masked from 'package:dplyr':
-    ## 
-    ##     count
-
-    ## 
-    ## Attaching package: 'DelayedArray'
-
-    ## The following objects are masked from 'package:matrixStats':
-    ## 
-    ##     colMaxs, colMins, colRanges, rowMaxs, rowMins, rowRanges
-
-    ## The following object is masked from 'package:purrr':
-    ## 
-    ##     simplify
-
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     aperm, apply, rowsum
-
-    ## Loading required package: Biostrings
-
-    ## Loading required package: XVector
-
-    ## 
-    ## Attaching package: 'XVector'
-
-    ## The following object is masked from 'package:purrr':
-    ## 
-    ##     compact
-
-    ## 
-    ## Attaching package: 'Biostrings'
-
-    ## The following object is masked from 'package:base':
-    ## 
-    ##     strsplit
-
-    ## Loading required package: bumphunter
-
-    ## Loading required package: foreach
-
-    ## Warning: package 'foreach' was built under R version 4.0.3
-
-    ## 
-    ## Attaching package: 'foreach'
-
-    ## The following objects are masked from 'package:purrr':
-    ## 
-    ##     accumulate, when
-
-    ## Loading required package: iterators
-
-    ## Warning: package 'iterators' was built under R version 4.0.3
-
-    ## Loading required package: locfit
-
-    ## locfit 1.5-9.4    2020-03-24
-
-    ## 
-    ## Attaching package: 'locfit'
-
-    ## The following object is masked from 'package:purrr':
-    ## 
-    ##     none
-
-    ## Setting options('download.file.method.GEOquery'='auto')
-
-    ## Setting options('GEOquery.inmemory.gpl'=FALSE)
+``` r
+knitr::opts_chunk$set(eval = FALSE)
+```
 
 ### Loading in required data
 
@@ -299,7 +99,7 @@ shared ID just in case this is not true. In the case of RICHS, we
 required a file mapping IDs from GEO, where we retrieved DNAm, to those
 on dbGaP.
 
-### Example: Assigning a common ID to DNAm and genotyping data and metadata
+### Assigning a common ID to DNAm and genotyping data and metadata
 
 ``` r
 methy_annot <- as.data.table(
@@ -318,11 +118,6 @@ combined_meta <- pheno %>%
     left_join(
         sample_multi
     )%>% filter(SAMPLE_USE == "Array_SNP")
-```
-
-    ## Joining, by = c("dbGaP_Subject_ID", "SUBJECT_ID")
-
-``` r
 richs_meta <- combined_meta
 richs_meta$IID <- richs_meta$SAMPLE_ID
 richs_meta_methy <- fread("data/methylation-metadata.csv") %>% 
@@ -349,12 +144,7 @@ richs_meta <- richs_meta[
 gen_vars <- c(colnames(genotype)[1:6],richs_meta$IID)
 to_delete <- colnames(genotype)[!colnames(genotype)%in% gen_vars]
 genotype[,c(to_delete):=NULL]
-```
 
-    ## Warning in `[.data.table`(genotype, , `:=`(c(to_delete), NULL)): length(LHS)==0;
-    ## no columns to delete or assign RHS to.
-
-``` r
 # match sample order
 setcolorder(genotype,gen_vars)
 methy_vars <- c("cpg",richs_meta$geo_accession)
@@ -362,17 +152,12 @@ methylation <- methylation[,methy_vars,with=FALSE]
 
 # Check if samples match
 all(colnames(methylation)[-c(1)] == richs_meta$geo_accession)
-```
-
-    ## [1] TRUE
-
-``` r
 all(colnames(genotype)[-c(1:6)] == richs_meta$IID)
 ```
 
-    ## [1] TRUE
+## Preparing covariates for mQTL analysis
 
-### Compute DNAm PCs
+### Hidden Covariates
 
 In addition to known variation due to measured covariates, we also
 account for “hidden” covariates in whichever quantitative trait we are
@@ -437,7 +222,7 @@ if(REMOVE_COVARIATES == TRUE){
 }
 ```
 
-### Write out `MatrixEQTL` files
+### Formatting `MatrixEQTL` files
 
 Since we first need to find the proper number of DNAm PCs to include in
 our model, we need to generate a covariate file for each additional PC
@@ -448,8 +233,8 @@ of PCs.
 #### Covariate files
 
 Our model for this mQTL analysis is:
-\[ DNAm_j \sim (intercept)+SNP_i + \text{Sex} + \text{Gestational Age} +
-\text{Genotype PCs}_{1\dots 5} + \text{DNAm PCs}_{0\dots k}\]
+$$ DNAm_j \sim (intercept)+SNP_i + \text{Sex} + \text{Gestational Age} +
+\text{Genotype PCs}_{1\dots 5} + \text{DNAm PCs}_{0\dots k}$$
 
 In the code below, we place sex last since MatrixEQTL has an option to
 include an interaction term for the last variable. `MatrixEQTL` adds in
@@ -577,18 +362,120 @@ fwrite(
 within 75 kb of a CpG site<sup>18–21</sup> using the R script
 [`run_cis_mQTL_75k.R`](scripts/run_cis_mQTL_75k.R):
 
+``` r
+library(MatrixEQTL)
+library(R.utils)
+
+argv <- commandArgs(
+  asValues = TRUE,
+  defaults = list(
+    data_dir = "",
+    SNP_fname = "all_imputed_snps_matrixeQTL.txt",
+    methylation_fname = "methylation_data_matrixeQTL.txt",
+    cov_file = "mQTL_covar_10_methy_PC.txt",
+    cis_outfile = "cis_mQTL.txt",
+    snp_pos = "snp_pos.txt",
+    probe_pos = "probe_pos.txt",
+    model = "modelLINEAR"
+  )
+)
+print(argv)
+use_model <- get(argv$model)
+
+data_dir <- argv$data_dir
+SNP_fname <- paste0(data_dir, argv$SNP_fname)
+methylation_fname <- paste0(data_dir, argv$methylation_fname)
+cis_outfile <- paste0(data_dir, argv$cis_outfile)
+pv_out_threshold <- 1.0 
+error_cov <- numeric()
+cis_dist <- 75000
+
+methylation <- SlicedData$new()
+methylation$fileDelimiter <- "\t"
+methylation$fileOmitCharacters <- "NA"
+methylation$fileSkipRows <- 1
+methylation$fileSkipColumns <- 1
+methylation$fileSliceSize <- 10000 # 2000 methylation at once
+methylation$LoadFile(methylation_fname)
+probe_pos <- read.delim(paste0(data_dir, argv$probe_pos), sep = "\t")
+
+covariates <- SlicedData$new()
+covariates$fileDelimiter <- "\t"
+covariates$fileOmitCharacters <- "NA"
+covariates$fileSkipRows <- 1
+covariates$fileSkipColumns <- 1
+covariates$LoadFile(paste0(data_dir, argv$cov_file))
+
+snps <- SlicedData$new()
+snps$fileDelimiter <- "\t"
+snps$fileOmitCharacters <- "NA"
+snps$fileSkipRows <- 1
+snps$fileSkipColumns <- 1
+snps$fileSliceSize <- 10000 # 10000 snps at once
+snps$LoadFile(SNP_fname)
+snp_pos <- read.delim(paste0(data_dir, argv$snp_pos), sep = "\t")
+print(head(snp_pos))
+print(head(probe_pos))
+me <- Matrix_eQTL_main(
+  snps = snps,
+  gene = methylation,
+  cvrt = covariates,
+  output_file_name.cis = cis_outfile,
+  pvOutputThreshold = 0,
+  pvOutputThreshold.cis = pv_out_threshold,
+  cisDist = cis_dist,
+  snpspos = snp_pos,
+  genepos = probe_pos,
+  useModel = use_model,
+  errorCovariance = error_cov,
+  verbose = TRUE,
+  pvalue.hist = "qqplot",
+  min.pv.by.genesnp = FALSE,
+  noFDRsaveMemory = FALSE
+)
+cat("Analysis done in: ", me$time.in.sec, " seconds", "\n")
+cat("Detected local eQTLs:", "\n")
+nrow(me$cis)
+```
+
 By default, the above script will print all pairwise associations. If
 you are computing a large number of mQTL, for example using the EPIC
 array, you may want to restrict the output to only include associations
-with \(p < 0.25\), which can be done by setting `pv_out_threshold
-<- 0.25`.
+with $p < 0.25$, which can be done by setting
+`pv_out_threshold <- 0.25`.
 
 For our PC experiment, we will use an array job to compute mQTL on
 chromosome 21 accounting for 0-20 DNAm PCs, running each set of
 covariates in parallel with the chromosome 21 data we saved before. See
-[run\_mQTL\_PCs.pbs](scripts/run_mQTL_PCs.pbs):
+[run_mQTL_PCs.pbs](scripts/run_mQTL_PCs.pbs):
 
 ``` bash
+#!/bin/bash
+
+#PBS -l walltime=05:00:00,select=1:ncpus=32:mem=192gb
+#PBS -N mqtl_chr21_PCs
+#PBS -A st-dennisjk-1
+#PBS -m abe
+#PBS -M willcasazza@gmail.com
+
+PROJECT_DIR=/scratch/st-dennisjk-1/wcasazza/mQTL-analysis-module/ #Modify this
+cd $PROJECT_DIR
+run_mqtl_chr(){
+   singularity exec /project/st-dennisjk-1/software/rstudio/rstudio.sif\
+    Rscript scripts/run_cis_mqtl_75k.R --data_dir="data/" \
+      --SNP_fname="all_imputed_matrixeQTL_chr21.txt"\
+      --cov_file="mQTL_covar_${1}_methy_PC.txt"\
+      --cis_outfile="cis_all_impute_mQTL_results_${1}_methy_PC_chr21.txt"\
+      --snp_pos="snp_pos_chr21.txt"\
+      --methylation_fname="methylation_matrixeQTL_chr21.txt"\
+      --probe_pos="probe_pos_chr21.txt"
+}
+
+module load parallel
+module load singularity
+
+export -f run_mqtl_chr
+parallel run_mqtl_chr ::: {0..20}
 ```
 
 Pay attention to the location of your data, whether your account
@@ -604,7 +491,7 @@ qsub scripts/run_mQTL_PCs.pbs
 
 The output of the above script should be a list of mQTL files listing
 PCs from 0-20. We can plot the number of associations significant at a
-Bonferroni corrected \(p < 0.05\) per each additional PC in our model:
+Bonferroni corrected $p < 0.05$ per each additional PC in our model:
 
 ``` r
 fmt <- "data/cis_all_impute_mQTL_results_%d_methy_PC_chr21.txt"
@@ -623,191 +510,263 @@ ggplot(to_plot,aes(PC,hits)) +
   theme_minimal()
 ```
 
-    ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+![](images/PCA-figure.png) From above it looks like after 9 PCs, we stop
+improving our ability to detect mQTL. In larger sample sizes (e.g.,
+$N > 250$), we often observe that the number of hits levels off at a
+certain number of PCs included in the model.
 
-![](main-module_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
-
-From above it looks like after 9 PCs, we stop improving our ability to
-detect mQTL. In larger sample sizes (e.g., \(N > 250\)), we often
-observe that the number of hits levels off at a certain number of PCs
-included in the model.
-
-## Running the final mQTL analysis
+# Running the final mQTL analysis
 
 We can modify the script we used to run `MatrixEQTL` for different
 numbers of PCs to simply run our entire cis-mQTL analysis for one set of
-covariates. See [run\_mQTL\_all.pbs](scripts/run_mQTL_all.pbs):
+covariates. See [run_mQTL_all.pbs](scripts/run_mQTL_all.pbs):
 
 ``` bash
+#!/bin/bash
+
+#PBS -l walltime=05:00:00,select=1:ncpus=20:mem=100gb
+#PBS -N RICHS_MQTL
+#PBS -A st-dennisjk-1
+#PBS -m abe
+#PBS -M willcasazza@gmail.com
+
+PROJECT_DIR=/scratch/st-dennisjk-1/wcasazza/mQTL-analysis-module/ #Modify this
+cd $PROJECT_DIR
+
+singularity exec /arc/project/st-dennisjk-1/software/rstudio/rstudio.sif\
+  Rscript run_cis_mqtl_75k.R --data_dir="data/" \
+        --SNP_fname="all_imputed_matrixeQTL.txt"\
+        --cov_file="mQTL_covar_9_methy_PC.txt"\
+        --cis_outfile="cis_mQTL_${mqtl_set}.txt"\
+        --snp_pos="snp_pos.txt"\
+        --methylation_fname="methylation_matrixeQTL.txt"\
+        --probe_pos="probe_pos.txt"\
+        --model="modelLINEAR"
 ```
 
 # References
 
-<div id="refs" class="references">
+<div id="refs" class="references csl-bib-body" line-spacing="2">
 
-<div id="ref-thegtexconsortiumGTExConsortiumAtlas2020">
+<div id="ref-thegtexconsortiumGTExConsortiumAtlas2020"
+class="csl-entry">
 
-1\. THE GTEX CONSORTIUM. The GTEx Consortium atlas of genetic regulatory
-effects across human tissues. *Science* **369**, 1318–1330 (2020).
-
-</div>
-
-<div id="ref-olivaDNAMethylationQTL2023">
-
-2\. Oliva, M. *et al.* DNA methylation QTL mapping across diverse human
-tissues provides molecular links between genetic variation and complex
-traits. *Nature Genetics* 1–11 (2023)
-doi:[10.1038/s41588-022-01248-z](https://doi.org/10.1038/s41588-022-01248-z).
+<span class="csl-left-margin">1.
+</span><span class="csl-right-inline">THE GTEX CONSORTIUM. [The GTEx
+Consortium atlas of genetic regulatory effects across human
+tissues](https://doi.org/10.1126/science.aaz1776). *Science* **369**,
+1318–1330 (2020).</span>
 
 </div>
 
-<div id="ref-sulPopulationStructureGenetic2018">
+<div id="ref-olivaDNAMethylationQTL2023" class="csl-entry">
 
-3\. Sul, J. H., Martin, L. S. & Eskin, E. Population structure in
-genetic studies: Confounding factors and mixed models. *PLoS Genetics*
-**14**, e1007309 (2018).
-
-</div>
-
-<div id="ref-pricePrincipalComponentsAnalysis2006">
-
-4\. Price, A. L. *et al.* Principal components analysis corrects for
-stratification in genome-wide association studies. *Nature Genetics*
-**38**, 904–909 (2006).
+<span class="csl-left-margin">2.
+</span><span class="csl-right-inline">Oliva, M. *et al.* DNA methylation
+QTL mapping across diverse human tissues provides molecular links
+between genetic variation and complex traits. *Nature Genetics* 1–11
+(2023)
+doi:[10.1038/s41588-022-01248-z](https://doi.org/10.1038/s41588-022-01248-z).</span>
 
 </div>
 
-<div id="ref-elhaikPrincipalComponentAnalyses2022">
+<div id="ref-sulPopulationStructureGenetic2018" class="csl-entry">
 
-5\. Elhaik, E. Principal Component Analyses (PCA)-based findings in
-population genetic studies are highly biased and must be reevaluated.
-*Scientific Reports* **12**, 14683 (2022).
-
-</div>
-
-<div id="ref-andreya.shabalinMatrixEQTLUltra2012">
-
-6\. Andrey A. Shabalin. Matrix eQTL: Ultra fast eQTL analysis via large
-matrix operations. *Bioinformatics* **28**, 1353–1358 (2012).
+<span class="csl-left-margin">3.
+</span><span class="csl-right-inline">Sul, J. H., Martin, L. S. & Eskin,
+E. [Population structure in genetic studies: Confounding factors and
+mixed models](https://doi.org/10.1371/journal.pgen.1007309). *PLoS
+Genetics* **14**, e1007309 (2018).</span>
 
 </div>
 
-<div id="ref-ongenFastEfficientQTL2016">
+<div id="ref-pricePrincipalComponentsAnalysis2006" class="csl-entry">
 
-7\. Ongen, H., Buil, A., Brown, A. A., Dermitzakis, E. T. & Delaneau, O.
-Fast and efficient QTL mapper for thousands of molecular phenotypes.
-*Bioinformatics* **32**, 1479–1485 (2016).
-
-</div>
-
-<div id="ref-delaneauCompleteToolSet2017">
-
-8\. Delaneau, O. *et al.* A complete tool set for molecular QTL
-discovery and analysis. *Nature Communications* **8**, 15452 (2017).
+<span class="csl-left-margin">4.
+</span><span class="csl-right-inline">Price, A. L. *et al.* [Principal
+components analysis corrects for stratification in genome-wide
+association studies](https://doi.org/10.1038/ng1847). *Nature Genetics*
+**38**, 904–909 (2006).</span>
 
 </div>
 
-<div id="ref-leeGenomeWideExpressionQuantitative2018">
+<div id="ref-elhaikPrincipalComponentAnalyses2022" class="csl-entry">
 
-9\. Lee, C. Genome-Wide Expression Quantitative Trait Loci Analysis
-Using Mixed Models. *Frontiers in Genetics* **9**, (2018).
-
-</div>
-
-<div id="ref-paquetteRegionsVariableDNA2016a">
-
-10\. Paquette, A. G. *et al.* Regions of variable DNA methylation in
-human placenta associated with newborn neurobehavior. *Epigenetics*
-**11**, 603–613 (2016).
+<span class="csl-left-margin">5.
+</span><span class="csl-right-inline">Elhaik, E. [Principal Component
+Analyses (PCA)-based findings in population genetic studies are highly
+biased and must be
+reevaluated](https://doi.org/10.1038/s41598-022-14395-4). *Scientific
+Reports* **12**, 14683 (2022).</span>
 
 </div>
 
-<div id="ref-pengExpressionQuantitativeTrait2017">
+<div id="ref-andreya.shabalinMatrixEQTLUltra2012" class="csl-entry">
 
-11\. Peng, S. *et al.* Expression quantitative trait loci (eQTLs) in
-human placentas suggest developmental origins of complex diseases.
-*Human Molecular Genetics* **26**, 3432–3441 (2017).
-
-</div>
-
-<div id="ref-pengGeneticRegulationPlacental2018">
-
-12\. Peng, S. *et al.* Genetic regulation of the placental transcriptome
-underlies birth weight and risk of childhood obesity. *PLOS Genetics*
-**14**, e1007799 (2018).
+<span class="csl-left-margin">6.
+</span><span class="csl-right-inline">Andrey A. Shabalin. [Matrix
+<span class="nocase">eQTL</span>: Ultra fast
+<span class="nocase">eQTL</span> analysis via large matrix
+operations](https://doi.org/10.1093/bioinformatics/bts163).
+*Bioinformatics* **28**, 1353–1358 (2012).</span>
 
 </div>
 
-<div id="ref-mostafaviNormalizingRNASequencingData2013">
+<div id="ref-ongenFastEfficientQTL2016" class="csl-entry">
 
-13\. Mostafavi, S. *et al.* Normalizing RNA-Sequencing Data by Modeling
-Hidden Covariates with Prior Knowledge. *PLoS ONE* **8**, (2013).
-
-</div>
-
-<div id="ref-zhouPCAOutperformsPopular2022">
-
-14\. Zhou, H. J., Li, L., Li, Y., Li, W. & Li, J. J. PCA outperforms
-popular hidden variable inference methods for molecular QTL mapping.
-*Genome Biology* **23**, 210 (2022).
+<span class="csl-left-margin">7.
+</span><span class="csl-right-inline">Ongen, H., Buil, A., Brown, A. A.,
+Dermitzakis, E. T. & Delaneau, O. [Fast and efficient QTL mapper for
+thousands of molecular
+phenotypes](https://doi.org/10.1093/bioinformatics/btv722).
+*Bioinformatics* **32**, 1479–1485 (2016).</span>
 
 </div>
 
-<div id="ref-stegleUsingProbabilisticEstimation2012">
+<div id="ref-delaneauCompleteToolSet2017" class="csl-entry">
 
-15\. Stegle, O., Parts, L., Piipari, M., Winn, J. & Durbin, R. Using
-probabilistic estimation of expression residuals (PEER) to obtain
-increased power and interpretability of gene expression analyses.
-*Nature protocols* **7**, 500–507 (2012).
-
-</div>
-
-<div id="ref-leek2007a">
-
-16\. Leek, J. T. & Storey, J. D. Capturing heterogeneity in gene
-expression studies by surrogate variable analysis. *PLoS genetics*
-**3**, 1724–1735 , (2007).
+<span class="csl-left-margin">8.
+</span><span class="csl-right-inline">Delaneau, O. *et al.* [A complete
+tool set for molecular QTL discovery and
+analysis](https://doi.org/10.1038/ncomms15452). *Nature Communications*
+**8**, 15452 (2017).</span>
 
 </div>
 
-<div id="ref-leekSvaPackageRemoving2012">
+<div id="ref-leeGenomeWideExpressionQuantitative2018" class="csl-entry">
 
-17\. Leek, J. T., Johnson, W. E., Parker, H. S., Jaffe, A. E. & Storey,
-J. D. The sva package for removing batch effects and other unwanted
-variation in high-throughput experiments. *Bioinformatics* **28**,
-882–883 (2012).
-
-</div>
-
-<div id="ref-smithMethylationQuantitativeTrait2014">
-
-18\. Smith, A. K. *et al.* Methylation quantitative trait loci (meQTLs)
-are consistently detected across ancestry, developmental stage, and
-tissue type. *BMC Genomics* **15**, 145 (2014).
+<span class="csl-left-margin">9.
+</span><span class="csl-right-inline">Lee, C. [Genome-Wide Expression
+Quantitative Trait Loci Analysis Using Mixed
+Models](https://doi.org/10.3389/fgene.2018.00341). *Frontiers in
+Genetics* **9**, (2018).</span>
 
 </div>
 
-<div id="ref-doMechanismsDiseaseAssociations2016">
+<div id="ref-paquetteRegionsVariableDNA2016a" class="csl-entry">
 
-19\. Do, C. *et al.* Mechanisms and Disease Associations of
-Haplotype-Dependent Allele-Specific DNA Methylation. *American Journal
-of Human Genetics* **98**, 934–955 (2016).
-
-</div>
-
-<div id="ref-shiCharacterizingGeneticBasis2014">
-
-20\. Shi, J. *et al.* Characterizing the genetic basis of methylome
-diversity in histologically normal human lung tissue. *Nature
-Communications* **5**, 3365 (2014).
+<span class="csl-left-margin">10.
+</span><span class="csl-right-inline">Paquette, A. G. *et al.* [Regions
+of variable DNA methylation in human placenta associated with newborn
+neurobehavior](https://doi.org/10.1080/15592294.2016.1195534).
+*Epigenetics* **11**, 603–613 (2016).</span>
 
 </div>
 
-<div id="ref-zhangLinkingGeneticArchitecture2014">
+<div id="ref-pengExpressionQuantitativeTrait2017" class="csl-entry">
 
-21\. Zhang, X. *et al.* Linking the genetic architecture of cytosine
-modifications with human complex traits. *Human Molecular Genetics*
-**23**, 5893–5905 (2014).
+<span class="csl-left-margin">11.
+</span><span class="csl-right-inline">Peng, S. *et al.* [Expression
+quantitative trait loci (<span class="nocase">eQTLs</span>) in human
+placentas suggest developmental origins of complex
+diseases](https://doi.org/10.1093/hmg/ddx265). *Human Molecular
+Genetics* **26**, 3432–3441 (2017).</span>
+
+</div>
+
+<div id="ref-pengGeneticRegulationPlacental2018" class="csl-entry">
+
+<span class="csl-left-margin">12.
+</span><span class="csl-right-inline">Peng, S. *et al.* [Genetic
+regulation of the placental transcriptome underlies birth weight and
+risk of childhood
+obesity](https://doi.org/10.1371/journal.pgen.1007799). *PLOS Genetics*
+**14**, e1007799 (2018).</span>
+
+</div>
+
+<div id="ref-mostafaviNormalizingRNASequencingData2013"
+class="csl-entry">
+
+<span class="csl-left-margin">13.
+</span><span class="csl-right-inline">Mostafavi, S. *et al.*
+[Normalizing RNA-Sequencing Data by Modeling Hidden Covariates with
+Prior Knowledge](https://doi.org/10.1371/journal.pone.0068141). *PLoS
+ONE* **8**, (2013).</span>
+
+</div>
+
+<div id="ref-zhouPCAOutperformsPopular2022" class="csl-entry">
+
+<span class="csl-left-margin">14.
+</span><span class="csl-right-inline">Zhou, H. J., Li, L., Li, Y., Li,
+W. & Li, J. J. [PCA outperforms popular hidden variable inference
+methods for molecular QTL
+mapping](https://doi.org/10.1186/s13059-022-02761-4). *Genome Biology*
+**23**, 210 (2022).</span>
+
+</div>
+
+<div id="ref-stegleUsingProbabilisticEstimation2012" class="csl-entry">
+
+<span class="csl-left-margin">15.
+</span><span class="csl-right-inline">Stegle, O., Parts, L., Piipari,
+M., Winn, J. & Durbin, R. [Using probabilistic estimation of expression
+residuals (PEER) to obtain increased power and interpretability of gene
+expression analyses](https://doi.org/10.1038/nprot.2011.457). *Nature
+protocols* **7**, 500–507 (2012).</span>
+
+</div>
+
+<div id="ref-leek2007a" class="csl-entry">
+
+<span class="csl-left-margin">16.
+</span><span class="csl-right-inline">Leek, J. T. & Storey, J. D.
+[Capturing heterogeneity in gene expression studies by surrogate
+variable analysis](https://doi.org/10.1371/journal.pgen.0030161). *PLoS
+genetics* **3**, 1724–1735, (2007).</span>
+
+</div>
+
+<div id="ref-leekSvaPackageRemoving2012" class="csl-entry">
+
+<span class="csl-left-margin">17.
+</span><span class="csl-right-inline">Leek, J. T., Johnson, W. E.,
+Parker, H. S., Jaffe, A. E. & Storey, J. D. [The sva package for
+removing batch effects and other unwanted variation in high-throughput
+experiments](https://doi.org/10.1093/bioinformatics/bts034).
+*Bioinformatics* **28**, 882–883 (2012).</span>
+
+</div>
+
+<div id="ref-smithMethylationQuantitativeTrait2014" class="csl-entry">
+
+<span class="csl-left-margin">18.
+</span><span class="csl-right-inline">Smith, A. K. *et al.* [Methylation
+quantitative trait loci (<span class="nocase">meQTLs</span>) are
+consistently detected across ancestry, developmental stage, and tissue
+type](https://doi.org/10.1186/1471-2164-15-145). *BMC Genomics* **15**,
+145 (2014).</span>
+
+</div>
+
+<div id="ref-doMechanismsDiseaseAssociations2016" class="csl-entry">
+
+<span class="csl-left-margin">19.
+</span><span class="csl-right-inline">Do, C. *et al.* [Mechanisms and
+Disease Associations of Haplotype-Dependent Allele-Specific DNA
+Methylation](https://doi.org/10.1016/j.ajhg.2016.03.027). *American
+Journal of Human Genetics* **98**, 934–955 (2016).</span>
+
+</div>
+
+<div id="ref-shiCharacterizingGeneticBasis2014" class="csl-entry">
+
+<span class="csl-left-margin">20.
+</span><span class="csl-right-inline">Shi, J. *et al.* [Characterizing
+the genetic basis of methylome diversity in histologically normal human
+lung tissue](https://doi.org/10.1038/ncomms4365). *Nature
+Communications* **5**, 3365 (2014).</span>
+
+</div>
+
+<div id="ref-zhangLinkingGeneticArchitecture2014" class="csl-entry">
+
+<span class="csl-left-margin">21.
+</span><span class="csl-right-inline">Zhang, X. *et al.* [Linking the
+genetic architecture of cytosine modifications with human complex
+traits](https://doi.org/10.1093/hmg/ddu313). *Human Molecular Genetics*
+**23**, 5893–5905 (2014).</span>
 
 </div>
 

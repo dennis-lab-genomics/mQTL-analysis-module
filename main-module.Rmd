@@ -12,7 +12,6 @@ output:
 
 1.  Basics of molecular quantitative trait locus (molQTL) analysis
 2.  Running cis-methylation QTL analysis with the `matrixEQTL` package
-3.  Post-hoc analyses involving molQTL and GWAS summary statistics
 
 # Quantitative trait loci (QTL) basics
 
@@ -33,7 +32,7 @@ We will be using data from the Rhode Island Child Health Study (RICHS), which co
 
 ### Required packages
 ```{r setup}
-knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(eval = FALSE) # Change to TRUE if you want all chunks to be run
 ```
 ```{r,echo=FALSE}
 # To install, uncomment lines below
@@ -53,7 +52,7 @@ library(IlluminaHumanMethylation450kanno.ilmn12.hg19)
 
 ### Loading in required data
 
-molQTL data are split into each set of measurements with only partially overlapping samples. This is for a variety of reasons. In the case of RICHS, it is because the DNAm data was first used in a separate publication consisting of more subjects,[@paquetteRegionsVariableDNA2016a] with the genotpying data published separately as part of an eQTL analysis. [@pengExpressionQuantitativeTrait2017; @pengGeneticRegulationPlacental2018]
+molQTL data are split into each set of measurements with only partially overlapping samples. This is for a variety of reasons. In the case of RICHS, it is because the DNAm data was first used in a separate publication consisting of more subjects,[@paquetteRegionsVariableDNA2016a] with the genotpying data published separately as part of an eQTL analysis. [@pengExpressionQuantitativeTrait2017a; @pengGeneticRegulationPlacental2018]
 
 This means that we need to harmonize IDs across both the DNAm and genotyping data **and** their respective metadata, which makes it easier to ensure that samples are in the same order prior to running `MatrixEQTL`. Other software may do this reordering automatically based on IDs, but it is a good idea to match he order of samples based on a shared ID just in case this is not true. In the case of RICHS, we required a file mapping IDs from GEO, where we retrieved DNAm, to those on dbGaP.
 

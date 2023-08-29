@@ -23,7 +23,6 @@ William Casazza
 
 1.  Basics of molecular quantitative trait locus (molQTL) analysis
 2.  Running cis-methylation QTL analysis with the `matrixEQTL` package
-3.  Post-hoc analyses involving molQTL and GWAS summary statistics
 
 # Quantitative trait loci (QTL) basics
 
@@ -78,7 +77,7 @@ Molecular trait: gene/trait identifier, chromosome, start, end
 ### Required packages
 
 ``` r
-knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(eval = FALSE) # Change to TRUE if you want all chunks to be run
 ```
 
 ### Loading in required data
@@ -653,7 +652,7 @@ neurobehavior](https://doi.org/10.1080/15592294.2016.1195534).
 
 </div>
 
-<div id="ref-pengExpressionQuantitativeTrait2017" class="csl-entry">
+<div id="ref-pengExpressionQuantitativeTrait2017a" class="csl-entry">
 
 <span class="csl-left-margin">11.
 </span><span class="csl-right-inline">Peng, S. *et al.* [Expression

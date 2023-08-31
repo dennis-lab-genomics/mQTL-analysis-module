@@ -17,6 +17,10 @@ William Casazza
     - [Hidden Covariates](#hidden-covariates)
     - [Formatting `MatrixEQTL` files](#formatting-matrixeqtl-files)
 - [Running the final mQTL analysis](#running-the-final-mqtl-analysis)
+- [Additional notes](#additional-notes)
+  - [Checking if your results are
+    valid](#checking-if-your-results-are-valid)
+  - [Reporting results](#reporting-results)
 - [References](#references)
 
 # Objectives
@@ -71,7 +75,7 @@ with subsequent columns being each sample - Genotypes: The first column
 being the rsID or SNP-identifier, with subsequent columns being each
 sample - Quantitative trait: The first column being a “gene” id or
 molecular trait identifier, with subsequent columns being each sample -
-position files - Genotypes: SNP identifier, chromosome, position -
+position files: - Genotypes: SNP identifier, chromosome, position -
 Molecular trait: gene/trait identifier, chromosome, start, end
 
 ### Required packages
@@ -543,6 +547,58 @@ singularity exec /arc/project/st-dennisjk-1/software/rstudio/rstudio.sif\
         --model="modelLINEAR"
 ```
 
+# Additional notes
+
+## Checking if your results are valid
+
+After running mQTL analysis, it is a good idea to take note of how many
+significant associations you found and how it compares to other similar
+studies. A common metric for replication is the $\pi_1$ statistic, which
+measures the proportion of your associations that are non-null in
+another study.<sup>22,23</sup> Mashr is an alternative to $\pi_1$ which
+runs a permutation procedure to get a less biased estimate of
+replication.<sup>24</sup>  
+  
+It’s also imporant to check for inflation of summary statistics. In a
+*cis*-mQTL analysis, we expect to see some inflation since we CpG sites
+are enriched for nearby associations with SNPs. In other words, the
+likelihood of observing an mQTL increases the closer you get to a
+particular CpG site. However, inflation at large pvalues (0.01-1) should
+be absent in the case of proper controlling for
+confounding.<sup>25–27</sup>  
+
+## Reporting results
+
+Although `MatrixEQTL` provides a q-value (False-discovery rate, or FDR,
+adjusted p-value), which can be used to call significant molQTL, there
+are a few approaches to calling significance in molQTL analysis. The
+approach taken by GTEX in eQTL analysis is a two-step procedure in which
+significant eQTL are called for each gene at an FDR threshold, and then
+evaluate remaining eQTL at a Bonferroni-corrected threshold.<sup>1</sup>
+This procedure is in part justified by mentioning the independence of
+eQTL for a single gene vs. between different genes.  
+  
+The procedure for reporting mQTL, and increasingly all molQTL and other
+eQTL, is becoming more complicated. In the case of mQTL, there is
+increasing emphasis on reporting “independent” associations. In some
+cases, this independence refers to the actual independence between SNPs
+associated with each CpG site, as measured via linkage-disequilibrium.
+In this case, we could report mQTL using a pruning procedure, such as
+one implemented in
+[PLINK](https://www.cog-genomics.org/plink/).<sup>26,28,29</sup>
+Alternatively, we can think about whether associations are independent
+using a step-wise regression procedure, where we see if an mQTL remains
+when accounting for associations with other nearby SNPs. This procedure
+is available in
+[mt-CoJo](https://yanglab.westlake.edu.cn/software/gcta/#mtCOJO), and is
+used in some fairly influential mQTL studies.<sup>2,30,31</sup>
+
+A simple, stringent method for calling mQTL is to simply use a
+Bonferroni-corrected threshold, calling significance at an
+$\alpha < 0.05$, which corresponds to having a nominal
+$p < \frac{\alpha}{N}$, where N is the number of SNP-CpG pairs tested in
+your analysis.<sup>32</sup>
+
 # References
 
 <div id="refs" class="references csl-bib-body" line-spacing="2">
@@ -766,6 +822,123 @@ Communications* **5**, 3365 (2014).</span>
 genetic architecture of cytosine modifications with human complex
 traits](https://doi.org/10.1093/hmg/ddu313). *Human Molecular Genetics*
 **23**, 5893–5905 (2014).</span>
+
+</div>
+
+<div id="ref-storeyStatisticalSignificanceGenomewide2003"
+class="csl-entry">
+
+<span class="csl-left-margin">22.
+</span><span class="csl-right-inline">Storey, J. D. & Tibshirani, R.
+[Statistical significance for genomewide
+studies](https://doi.org/10.1073/pnas.1530509100). *Proceedings of the
+National Academy of Sciences* **100**, 9440–9445 (2003).</span>
+
+</div>
+
+<div id="ref-storeyQvalueQvalueEstimation2017" class="csl-entry">
+
+<span class="csl-left-margin">23.
+</span><span class="csl-right-inline">Storey, J. D., Bass, A. J.,
+Dabney, A. & Robinson, D. *Qvalue: <span class="nocase">Q-value</span>
+estimation for false discovery rate control*. (2017).</span>
+
+</div>
+
+<div id="ref-urbutFlexibleStatisticalMethods2019" class="csl-entry">
+
+<span class="csl-left-margin">24.
+</span><span class="csl-right-inline">Urbut, S. M., Wang, G.,
+Carbonetto, P. & Stephens, M. [Flexible statistical methods for
+estimating and testing effects in genomic studies with multiple
+conditions](https://doi.org/10.1038/s41588-018-0268-8). *Nature
+Genetics* **51**, 187–195 (2019).</span>
+
+</div>
+
+<div id="ref-mcraeIdentification550002018" class="csl-entry">
+
+<span class="csl-left-margin">25.
+</span><span class="csl-right-inline">McRae, A. F. *et al.*
+[Identification of 55,000 Replicated DNA Methylation
+QTL](https://doi.org/10.1038/s41598-018-35871-w). *Scientific Reports*
+**8**, 17605 (2018).</span>
+
+</div>
+
+<div id="ref-gauntSystematicIdentificationGenetic2016"
+class="csl-entry">
+
+<span class="csl-left-margin">26.
+</span><span class="csl-right-inline">Gaunt, T. R. *et al.* [Systematic
+identification of genetic influences on methylation across the human
+life course](https://doi.org/10.1186/s13059-016-0926-z). *Genome
+Biology* **17**, 61 (2016).</span>
+
+</div>
+
+<div id="ref-huanGenomewideIdentificationDNA2019" class="csl-entry">
+
+<span class="csl-left-margin">27.
+</span><span class="csl-right-inline">Huan, T. *et al.* [Genome-wide
+identification of DNA methylation QTLs in whole blood highlights
+pathways for cardiovascular
+disease](https://doi.org/10.1038/s41467-019-12228-z). *Nature
+Communications* **10**, 4267 (2019).</span>
+
+</div>
+
+<div id="ref-changSecondgenerationPLINKRising2015" class="csl-entry">
+
+<span class="csl-left-margin">28.
+</span><span class="csl-right-inline">Chang, C. C. *et al.*
+[Second-generation PLINK: Rising to the challenge of larger and richer
+datasets](https://doi.org/10.1186/s13742-015-0047-8). *GigaScience*
+**4**, (2015).</span>
+
+</div>
+
+<div id="ref-hannonLeveragingDNAMethylationQuantitativeTrait2018"
+class="csl-entry">
+
+<span class="csl-left-margin">29.
+</span><span class="csl-right-inline">Hannon, E. *et al.* [Leveraging
+DNA-Methylation Quantitative-Trait Loci to Characterize the Relationship
+between Methylomic Variation, Gene Expression, and Complex
+Traits.](https://doi.org/10.1016/j.ajhg.2018.09.007) *American journal
+of human genetics* **103**, 654–665 (2018).</span>
+
+</div>
+
+<div id="ref-yangConditionalJointMultipleSNP2012" class="csl-entry">
+
+<span class="csl-left-margin">30.
+</span><span class="csl-right-inline">Yang, J. *et al.* [Conditional and
+joint multiple-SNP analysis of GWAS summary statistics identifies
+additional variants influencing complex
+traits](https://doi.org/10.1038/ng.2213). *Nature Genetics* **44**,
+369–375 (2012).</span>
+
+</div>
+
+<div id="ref-minGenomicPhenotypicInsights2021" class="csl-entry">
+
+<span class="csl-left-margin">31.
+</span><span class="csl-right-inline">Min, J. L. *et al.* [Genomic and
+phenotypic insights from an atlas of genetic effects on DNA
+methylation](https://doi.org/10.1038/s41588-021-00923-x). *Nature
+Genetics* **53**, 1311–1321 (2021).</span>
+
+</div>
+
+<div id="ref-ngXQTLMapIntegrates2017" class="csl-entry">
+
+<span class="csl-left-margin">32.
+</span><span class="csl-right-inline">Ng, B. *et al.* [An
+<span class="nocase">xQTL</span> map integrates the genetic architecture
+of the human brain’s transcriptome and
+epigenome](https://doi.org/10.1038/nn.4632). *Nature Neuroscience*
+**20**, 1418–1426 (2017).</span>
 
 </div>
 

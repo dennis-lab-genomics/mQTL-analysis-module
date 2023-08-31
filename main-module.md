@@ -244,6 +244,7 @@ of PCs.
 #### Covariate files
 
 Our model for this mQTL analysis is:
+
 $$ DNAm_j \sim (intercept)+SNP_i + \text{Sex} + \text{Gestational Age} +
 \text{Genotype PCs}_{1\dots 5} + \text{DNAm PCs}_{0\dots k}$$
 

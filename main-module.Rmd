@@ -175,7 +175,9 @@ Since we first need to find the proper number of DNAm PCs to include in our mode
 
 #### Covariate files
 
-Our model for this mQTL analysis is: $$ DNAm_j \sim (intercept)+SNP_i + \text{Sex} + \text{Gestational Age} +
+Our model for this mQTL analysis is:
+
+$$ DNAm_j \sim (intercept)+SNP_i + \text{Sex} + \text{Gestational Age} +
 \text{Genotype PCs}_{1\dots 5} + \text{DNAm PCs}_{0\dots k}$$
 
 In the code below, we place sex last since MatrixEQTL has an option to include an interaction term for the last variable. `MatrixEQTL` adds in the intercept term automatically:

@@ -98,14 +98,14 @@ molQTL data are split into each set of measurements with only partially
 overlapping samples. This is for a variety of reasons. In the case of
 RICHS, it is because the DNAm data was first used in a separate
 publication consisting of more subjects,<sup>10</sup> with the
-genotpying data published separately as part of an eQTL
+genotyping data published separately as part of an eQTL
 analysis.<sup>11,12</sup>
 
 This means that we need to harmonize IDs across both the DNAm and
 genotyping data **and** their respective metadata, which makes it easier
 to ensure that samples are in the same order prior to running
 `MatrixEQTL`. Other software may do this reordering automatically based
-on IDs, but it is a good idea to match he order of samples based on a
+on IDs, but it is a good idea to match the order of samples based on a
 shared ID just in case this is not true. In the case of RICHS, we
 required a file mapping IDs from GEO, where we retrieved DNAm, to those
 on dbGaP.
@@ -174,18 +174,18 @@ In addition to known variation due to measured covariates, we also
 account for “hidden” covariates in whichever quantitative trait we are
 measuring. “Hidden” covariates are any possible variable that affects
 global DNAm that could also explain the association between a single SNP
-and a quantitative trait.<sup>13,14</sup> This is computed a number of
+and a quantitative trait.<sup>13,14</sup> This is computed by a number of
 methods, most of which are closely tied to principal components
 analysis. For example, GTEx uses a variable number of PEER factors
 computed from gene expression to account for hidden
-variation,<sup>1,15</sup> but there are several others including SVA,
+variation,<sup>1,15</sup> but there are several others, including SVA,
 HCP, or PCA alone.<sup>13,14,16,17</sup>
 
-On the other hand, PCA itself is often easier to apply, and performs as
+On the other hand, PCA itself is often easier to apply and performs as
 well as or better than the methods listed above in reducing false
-positives, and in improving our power to detect molQTL.<sup>14</sup> We
+positives and in improving our power to detect molQTL.<sup>14</sup> We
 compute the optimal number of DNAm PCs to include using the “elbow”
-method. First, we take a subset of SNPs, in this example those on
+method. First, we take a subset of SNPs, in this example, those on
 chromosome 21, and compute mQTL accounting for an increasing number of
 principal components. The optimal number of PCs to include is when we
 stop detecting more mQTL with each successive PC.
@@ -194,7 +194,7 @@ stop detecting more mQTL with each successive PC.
 
 In some cases, you may want to regress out or account for covariates
 affecting DNAm prior to computing PCs. This is conceptually similar to
-what is done with methods like PEER or HCP, or even ComBat, which is a
+what is done with methods like PEER, HCP, or even ComBat, which is a
 commonly used method in processing DNAm for epigenome-wide association
 studies.<sup>13,15,17</sup> Below, I included the option of performing
 this procedure before computing DNAm PCs, but note that it is not
@@ -245,8 +245,10 @@ of PCs.
 
 Our model for this mQTL analysis is:
 
-$$ DNAm_j \sim (intercept)+SNP_i + \text{Sex} + \text{Gestational Age} +
-\text{Genotype PCs}_{1\dots 5} + \text{DNAm PCs}_{0\dots k}$$
+```math
+DNAm_j \sim (intercept)+SNP_i + \text{Sex} + \text{Gestational Age} +
+\text{Genotype PCs}_{1\dots 5} + \text{DNAm PCs}_{0\dots k}
+```
 
 In the code below, we place sex last since MatrixEQTL has an option to
 include an interaction term for the last variable. `MatrixEQTL` adds in

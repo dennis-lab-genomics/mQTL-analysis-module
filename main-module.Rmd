@@ -28,7 +28,19 @@ We will be using data from the Rhode Island Child Health Study (RICHS), which co
 
 `MatrixEQTL` is a package that efficiently runs linear regression through the use of large matrix operations.[@andreya.shabalinMatrixEQTLUltra2012] There are several alternative molQTL-mapping software that offer their own advantages such as fast permutation procedure for estimating significance[@ongenFastEfficientQTL2016; @delaneauCompleteToolSet2017] or alternatives to linear models.[@leeGenomeWideExpressionQuantitative2018]
 
-`MatrixEQTL` is relatively simple to run, and as it reports results from simple linear regression it is straightforward to interpret. The required formats are shown in their [online documentation](https://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/runit.html#own). In brief, we will need the following tab or whitespace-delimited files: - covariates: the first column being the ID of each covariate, with subsequent columns being each sample - Genotypes: The first column being the rsID or SNP-identifier, with subsequent columns being each sample - Quantitative trait: The first column being a "gene" id or molecular trait identifier, with subsequent columns being each sample - position files: - Genotypes: SNP identifier, chromosome, position - Molecular trait: gene/trait identifier, chromosome, start, end
+`MatrixEQTL` is relatively simple to run, and as it reports results from simple linear regression it is straightforward to interpret. The required formats are shown in their [online documentation](https://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/runit.html#own). In brief, we will need the following tab or whitespace-delimited files:
+
+-   Covariates: the first column being the ID of each covariate, with subsequent columns being each sample
+
+-   Genotypes: The first column being the rsID or SNP-identifier, with subsequent columns being each sample
+
+-   Quantitative trait: The first column being a "gene" id or molecular trait identifier, with subsequent columns being each sample
+
+-   Position files:
+
+    -   Genotypes: SNP identifier, chromosome, position
+
+    -   Molecular trait: gene/trait identifier, chromosome, start, end
 
 ### Required packages
 
@@ -340,7 +352,7 @@ We can modify the script we used to run `MatrixEQTL` for different numbers of PC
 
 After running mQTL analysis, it is a good idea to take note of how many significant associations you found and how it compares to other similar studies. A common metric for replication is the $\pi_1$ statistic, which measures the proportion of your associations that are non-null in another study.[@storeyStatisticalSignificanceGenomewide2003; @storeyQvalueQvalueEstimation2017] Mashr is an alternative to $\pi_1$ which runs a permutation procedure to get a less biased estimate of replication.[@urbutFlexibleStatisticalMethods2019]\
 \
-It's also imporant to check for inflation of summary statistics. In a *cis*-mQTL analysis, we expect to see some inflation since we CpG sites are enriched for nearby associations with SNPs. In other words, the likelihood of observing an mQTL increases the closer you get to a particular CpG site. However, inflation at large pvalues (0.01-1) should be absent in the case of proper controlling for confounding. [@mcraeIdentification550002018; @gauntSystematicIdentificationGenetic2016; @huanGenomewideIdentificationDNA2019] \
+It's also imporant to check for inflation of summary statistics. In a *cis*-mQTL analysis, we expect to see some inflation since we CpG sites are enriched for nearby associations with SNPs. In other words, the likelihood of observing an mQTL increases the closer you get to a particular CpG site. However, inflation at large pvalues (0.01-1) should be absent in the case of proper controlling for confounding. [@mcraeIdentification550002018; @gauntSystematicIdentificationGenetic2016; @huanGenomewideIdentificationDNA2019]\
 
 ## Reporting results
 

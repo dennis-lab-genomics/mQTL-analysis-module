@@ -69,14 +69,22 @@ significance<sup>7,8</sup> or alternatives to linear models.<sup>9</sup>
 simple linear regression it is straightforward to interpret. The
 required formats are shown in their [online
 documentation](https://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/runit.html#own).
-In brief, we will need the following tab or whitespace-delimited
-files: - covariates: the first column being the ID of each covariate,
-with subsequent columns being each sample - Genotypes: The first column
-being the rsID or SNP-identifier, with subsequent columns being each
-sample - Quantitative trait: The first column being a “gene” id or
-molecular trait identifier, with subsequent columns being each sample -
-position files: - Genotypes: SNP identifier, chromosome, position -
-Molecular trait: gene/trait identifier, chromosome, start, end
+In brief, we will need the following tab or whitespace-delimited files:
+
+- Covariates: the first column being the ID of each covariate, with
+  subsequent columns being each sample
+
+- Genotypes: The first column being the rsID or SNP-identifier, with
+  subsequent columns being each sample
+
+- Quantitative trait: The first column being a “gene” id or molecular
+  trait identifier, with subsequent columns being each sample
+
+- Position files:
+
+  - Genotypes: SNP identifier, chromosome, position
+
+  - Molecular trait: gene/trait identifier, chromosome, start, end
 
 ### Required packages
 
